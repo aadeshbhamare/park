@@ -1,0 +1,957 @@
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SmartPark - Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- [ADDED] This line enables local QR code generation FROM THE SECOND FILE -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+<style>
+    /* Reset and base styles */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+    --background: linear-gradient(180deg, #d1c1c2, #6b3b3b);   
+    --primary-accent: #ff9933; /* Saffron */
+    --secondary-accent: #138808; /* Green */
+    --text-color: #000000; /* Black */
+    --header-bg: linear-gradient(to right, #ff9933, #ffffff, #138808); /* Flag gradient */
+    --card-bg: #f9f9f9; /* Light background for cards */
+    --card-border: #13880888; /* Transparent green */
+    --card-shadow: #13880855; /* Green shadow */
+    --spot-vacant: #138808; /* Green */
+    --spot-occupied: #ff9933; /* Saffron */
+    --spot-booked-by-user: #000080; /* Navy blue (Ashoka Chakra) */
+    --spot-selected: #000080; /* Navy blue */
+    --btn-danger-bg: #000080; /* Navy blue for logout */
+}
+
+/***** COMPLETE ADVANCED & INTERACTIVE HEADER STYLES *****/
+
+/* 1. Main Header Bar: Adds shadow for depth */
+header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 2rem;
+    background: var(--header-bg);
+    border-bottom: 1px solid var(--primary-accent);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+/* 2. Left "Box": Tighter spacing between logo and nav */
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem; /* Reduced gap for a compact feel */
+}
+
+/* 3. Logo: Larger font size for brand emphasis */
+.logo {
+    font-size: 2rem; /* Increased size */
+    font-weight: bold;
+    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+.logo:hover {
+    transform: scale(1.05);
+}
+
+/* 4. Navigation UL: Creates the 3D space for animations */
+nav ul {
+    list-style: none;
+    display: flex;
+    gap: 0.5rem;
+    perspective: 250px; /* 3D space for children */
+}
+
+/* 5. Navigation Links: The core interactive element */
+nav a {
+    display: block;
+    padding: 0.6rem 1.2rem;
+    border-radius: 59px; /* Pill shape */
+    text-decoration: none;
+    color: #23008c;
+    font-weight: 900;
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    transition: transform 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* The animated background for the links */
+nav a::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 25%;
+    height: 34%;
+    background: var(--primary-accent);
+    z-index: -1;
+    border-radius: 22px;
+    transform: scaleY(0);
+    transform-origin: bottom;
+    transition: transform 0.5s cubic-bezier(0.5, 1.6, 0.4, 0.7);
+}
+
+/* The hover state that triggers the animations */
+nav a:hover {
+    color: white;
+    transform: translateY(-4px) rotateX(15deg); /* 3D lift and tilt */
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+nav a:hover::before {
+    transform: scaleY(1);
+    transform-origin: top;
+}
+
+/* 6. Flag Interaction: Matching hover effect */
+.national-flag {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.national-flag:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 5px 20px rgba(255, 153, 51, 0.5);
+}
+.hero { padding: 4rem 2rem 3rem; text-align: center; max-width: 800px; margin: 0 auto; }
+.hero h1 { font-size: 3rem; margin-bottom: 0.5rem; color: var(--primary-accent); }
+.hero p { font-size: 1.25rem; color: var(--secondary-accent); margin-bottom: 2rem; line-height: 1.5; }
+.hero button { background: var(--primary-accent); border: none; color: var(--bg-color); font-weight: 700; padding: 0.75rem 2rem; border-radius: 30px; font-size: 1.1rem; cursor: pointer; transition: background-color 0.3s; }
+.container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+.dashboard-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 30px; margin-bottom: 30px; }
+.card { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--card-border); box-shadow: 0 0 15px var(--card-shadow); padding: 25px; margin-bottom: 30px; }
+.card-title { font-size: 1.4rem; margin-bottom: 20px; color: var(--primary-accent); display: flex; align-items: center; gap: 10px; }
+.wallet-status { display: flex; align-items: center; gap: 10px; padding: 15px; background: var(--header-bg); border-radius: 8px; border-left: 4px solid var(--btn-danger-bg); }
+.wallet-status.connected { border-left-color: #000080; }
+.balance { font-size: 2rem; font-weight: bold; text-align: center; padding: 20px; background: linear-gradient(135deg, #000080 0%, #000060 100%); color: white; border-radius: 8px; margin: 15px 0; }
+.btn { padding: 12px 24px; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: 0.3s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; background: var(--primary-accent); color: var(--bg-color); }
+.btn:hover:not(:disabled) { background: #e68a00; }
+.btn.btn-danger { background: var(--btn-danger-bg); color: #ffffff; }
+.btn.btn-danger:hover { background: linear-gradient(90deg, #ff9933, #000080, #138808); color: #fff; } /* Flag color hover */
+.btn:disabled { background: #ccc; color: #666; cursor: not-allowed; opacity: 0.6; }
+#zonesContainer { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+.zone-card { background:#f3fc4697; border-radius: 10px; border: 2px solid transparent; overflow: hidden; transition: transform 0.3s, border-color 0.3s; cursor: pointer; }
+.zone-card:hover { transform: translateY(-12px); border-color: var(--secondary-accent); }
+.zone-header { background: var(--primary-accent); color: white; padding: 15px; }
+.zone-name { font-size: 1.2rem; font-weight: bold; }
+.zone-body { padding: 18px; }
+.zone-detail { display: flex; justify-content: space-between; margin-bottom: 15px; }
+.map-header { display: flex; justify-content: space-between; align-items: center; }
+#fullscreen-btn { background: none; border: 1px solid var(--primary-accent); color: var(--primary-accent); padding: 8px 12px; }
+.map-search-bar { display: flex; gap: 10px; margin-bottom: 15px; }
+.map-search-bar input { flex-grow: 1; background-color: #fff; border: 1px solid #ed841b88; padding: 10px 15px; font-size: 1rem; border-radius: 8px; color: #000; }
+.map-search-bar .btn { padding: 10px 20px; }
+#map-container { background: #fff; border-radius: 12px; overflow: hidden; height: 500px; border: 1px solid var(--card-border); }
+#map-container:fullscreen { background: var(--card-bg); padding: 20px; }
+#map-iframe { width: 100%; height: 100%; border: none; }
+.session-panel { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--card-border); padding: 25px; text-align: center; }
+.session-list { list-style: none; padding: 0; margin-top: 1rem; }
+.session-item { display: grid; grid-template-columns: 1fr 1fr 1fr auto; align-items: center; gap: 1rem; padding: 1rem; background: #fff; border-radius: 8px; margin-bottom: 1rem; text-align: left; }
+#booking-section, #receipt-section { max-width: 600px; margin: 2rem auto 3rem; background: var(--card-bg); padding: 2rem; border-radius: 10px; border: 1px solid var(--primary-accent); }
+#booking-section h2, #receipt-section h3 { text-align: center; margin-bottom: 1.5rem; }
+form label { display: block; margin-bottom: 0.3rem; font-weight: 600; }
+form input, form select { width: 100%; padding: 0.6rem 0.8rem; margin-bottom: 1.2rem; border-radius: 6px; border: 1.5px solid var(--primary-accent); background: var(--bg-color); color: var(--text-color); font-size: 1rem; }
+#selected-spots-list { background: #fff; padding: 1rem; border-radius: 6px; margin-bottom: 1.2rem; min-height: 40px; }
+#selected-spots-list .spot-tag { display: inline-block; background: var(--spot-selected); color: white; padding: 5px 10px; border-radius: 5px; margin: 2px; font-weight: bold; }
+#upi-payment { display: none; text-align: center; margin-bottom: 1rem; }
+#upi-payment img { width: 150px; height: 150px; margin-bottom: 1rem; border-radius: 10px; background-color: white; padding: 5px; cursor: pointer; }
+#receipt-section { max-width: 900px; background: var(--card-bg); padding: 0; border-radius: 12px; overflow: hidden; border: 1px solid var(--primary-accent); }
+#receipt-section h3 { padding: 20px; margin: 0; border-bottom: 2px solid var(--primary-accent); }
+.receipt-layout { display: flex; flex-wrap: wrap; align-items: center; gap: 20px;}
+#receipt-map-container { width: 50%; min-height: 350px; background: #fff; }
+#receipt-map-iframe { width: 100%; height: 100%; border: none; }
+.receipt-details { width: 50%; padding: 20px; }
+.detail-item { margin-bottom: 12px; }
+.detail-item strong { color: var(--secondary-accent); display: block; font-size: 0.9rem; }
+.detail-item span { font-size: 1.1rem; }
+#receipt-buttons { display: flex; gap: 1rem; margin-top: 20px; }
+.modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.3s; }
+.modal.show { opacity: 1; visibility: visible; }
+.modal-content { background: var(--card-bg); border: 1px solid var(--primary-accent); border-radius: 12px; width: 90%; max-width: 800px; padding: 30px; position: relative; }
+.modal-close { position: absolute; top: 15px; right: 20px; font-size: 2rem; cursor: pointer; }
+#parking-map-container { display: grid; grid-template-columns: repeat(10, 1fr); gap: 8px; margin: 20px 0; max-height: 60vh; overflow-y: auto; }
+.parking-spot { aspect-ratio: 1 / 1; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold; color: white; transition: 0.2s; }
+.parking-spot.vacant { background-color: var(--spot-vacant); cursor: pointer; }
+.parking-spot.vacant:hover { transform: scale(1.1); background-color: #0e5d06; }
+.parking-spot.occupied { background-color: var(--spot-occupied); cursor: not-allowed; }
+.parking-spot.booked { background-color: var(--spot-booked-by-user); cursor: not-allowed; } 
+.parking-spot.booked-by-user { background-color: var(--spot-booked-by-user); border: 2px solid white; }
+.parking-spot.selected { background-color: var(--spot-selected); border: 2px solid white; transform: scale(1.1); }
+.modal-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; }
+footer { background-color: var(--header-bg); padding: 2rem 1rem; border-top: 1px solid var(--primary-accent); text-align: center; }
+.hidden { display: none; }
+.footer-img {width: 70px; height: auto; vertical-align: middle; }
+@media (max-width: 992px) { .dashboard-grid, .receipt-layout { grid-template-columns: 1fr; } #receipt-map-container, .receipt-details { width: 100%; } header { flex-direction: column; gap: 1rem; padding: 1rem; }}
+.national-flag {height: 40px;  /* Adjust size */ margin: 0 15px; /* Space between logo and nav */ border: 1px solid #ccc; border-radius: 4px;}
+.wallet-flag {display: inline-block;/* Make sure it starts on its own line */margin: 10px auto 20px; /* Vertical spacing, centered */max-width: 70%;/*Responsive,scales with container*/height: auto;
+  border: 1px solid #ccc; /* Optional border for neatness */
+  border-radius: 8px;
+#instruction-flag {cursor: pointer; /* Changes the mouse cursor to a pointer*/transition: transform 0.3s ease, box-shadow 0.3s ease;border-radius: 4px; /* Matches the other flag style */}
+#instruction-flag:hover{transform: scale(1.1); /* Slightly enlarges the flag on hover */box-shadow: 0 0 15px var(--primary-accent); /* Adds a saffron-colored glow */}
+#instructions-text { padding: 10px 0; line-height: 1.8; /* Increases spacing between lines for readability */ font-size: 1.1rem; color: #ee0404;}
+#instructions-text p{margin-bottom: 1rem; /* Adds space between each instruction point */}
+/* 3. Highlight the Important EV Station Note */
+#instructions-text strong {color:#1f0888; /* Uses the theme's green for emphasis */font-weight: 700;}
+/* 4. Ensure the modal title has good spacing */
+#instructions-modal .card-title {border-bottom: 2px solid #0ab6f5;padding-bottom: 15px;margin-bottom: 20px;}}
+  </style>
+</head>
+<body>
+  <script>
+    if (sessionStorage.getItem('userRole') !== 'customer') { window.location.href = 'index.html'; }
+  </script>
+  <header>
+    <div class="header-logo-left">
+        <!-- This is your new logo image -->
+        <img src="logo.PNG" alt="SmartPark Company Logo" style="height:60px;">
+        <div class="logo">SmartPark</div>
+    </div>
+<header style="justify-content: flex-start; gap: 14rem;">
+    <nav><ul><li><a href="#dashboard-section" class="header-link">Dashboard </a></li><li>
+        <a href="#" id="logout-btn">Logout</a></li></ul>
+      <nav><ul><li><a href="privacy.html" class="header-link">Privacy Policy</a></li><li><a href="terms.html" class="header-link">Terms & Conditions</a></nav></nav></ul>
+     <!-- National Flag --></header>
+    <img src="https://upload.wikimedia.org/wikipedia/en/4/41/Flag_of_India.svg" alt="Indian Flag" class="national-flag" id="instruction-flag"> 
+</header>
+  <section class="hero" id="hero">
+    <h1>The Ultimate Parking Experience</h1>
+    <p>Select a zone from the list, choose your exact spots from a live map, and get instant confirmation.</p>
+    <button onclick="document.getElementById('dashboard-section').scrollIntoView()">Find a Spot</button>
+  </section>
+  <div class="container" id="dashboard-section">
+    <div class="dashboard-grid">
+        <div class="card">
+            <h2 class="card-title"><i class="fas fa-wallet"></i> Wallet & Tokens</h2>
+            <div id="walletStatus" class="wallet-status">
+                <i class="fas fa-exclamation-circle"></i> 
+                <span>Wallet not connected</span></div>
+            <div class="balance"><i class="fas fa-coins"></i> 
+                <span id="tokenBalance">0 SPARK</span></div>
+            <button id="connectWallet" class="btn"><i class="fas fa-plug"></i> Connect Wallet</button>
+            <!-- [ADDED] This button was in the second file -->
+            <button id="disconnectWallet" class="btn btn-danger hidden"><i class="fas fa-times-circle"></i> Disconnect</button>
+            <!-- Indian flag under Wallet -->
+<img src="https://www.pngkey.com/png/detail/32-325237_download-indian-flag-wallpaper-source-flag-of-india.png" alt="Indian Flag" class="wallet-flag">
+        </div>
+        <div class="card">
+            <h2 class="card-title"><i class="fas fa-map-marked-alt"></i> Parking Zones</h2>
+            <div id="zonesContainer" class="zones-grid"></div>
+        </div>
+    </div>
+    
+    <div id="sessionPanel" class="session-panel"></div>
+
+    <div class="card" id="map-section">
+        <div class="map-header">
+            <h2 class="card-title"><i class="fas fa-globe-asia"></i> Zone Locations Map</h2>
+            <button id="fullscreen-btn" class="btn" title="Enter fullscreen mode"><i class="fas fa-expand"></i></button>
+        </div>
+        <div class="map-search-bar">
+            <input type="text" id="map-search-input" placeholder="Search for a location (e.g., Bibwewadi, Pune)">
+            <button id="map-search-btn" class="btn" title="Search"><i class="fas fa-search"></i></button>
+        </div>
+        <div id="map-container">
+            <iframe id="map-iframe" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15137.99972851218!2d73.8536679!3d18.4719754!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bc2eac92b8217bd%3A0x1d37ff2249eda817!2sBibwewadi%2C%20Pune%2C%20Maharashtra!5e0!3m2!1sen!2sin!4v1693300000000!5m2!1sen!2sin" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </div>
+    </div>
+  </div>
+
+  <section id="booking-section" class="hidden"></section>
+  <section id="receipt-section" class="hidden"></section>
+  <div id="parking-map-modal" class="modal"></div>
+
+  <div id="instructions-modal" class="modal">
+    <div class="modal-content">
+      <span class="modal-close" id="instructions-modal-close">×</span>
+      <h2 class="card-title"><i class="fas fa-bullhorn"></i> Instructions</h2>
+      <div id="instructions-text">
+        <p><h1>Welcome to SmartPark!</h1></p>
+        <p><h2>1. First, connect your wallet to manage your SPARK tokens.</h2></p>
+        <p><h2>2.Select a parking zone from the list to see its location on the map.</h2></p>
+        <p><h2>3. Click 'View Available Spots' to see a live map of the parking layout.</h2></p>
+        <p><h2>4. Select your desired vacant spots and confirm your selection.</h2></p>
+        <p><h2>5. Complete the booking form with your details.</h2></p>
+        <p><strong>Please note:</strong><h1>Some parking areas are now equipped with dedicated EV charging stations.</h1></p>
+      </div>
+    </div>
+  </div>
+    <footer>
+    <div class="footer-logo-line">
+        <img src="13.png" alt="SmartPark Logo" class="footer-img"><div class="footer-links">
+        <a href="#hero">HOME</a>
+    </div> 🚗 SmartPark
+    </div>
+    <p class="footer-copy">© 2025 SmartPark. Built with ❤️ by Aadesh Bhamare.</p>
+
+   <div class="footer-logo-line">
+        <!-- This is your new logo image -->
+        <img src="logo.PNG" alt="SmartPark Company Logo" style="height:50px;horizontal-align:center;">
+        <div class="logo">SmartPark</div>
+    </div>
+      </footer>
+<div id="checkout-payment-modal" class="modal"></div>
+  <script>
+    // --- DOM Elements ---
+    const mapContainer = document.getElementById('map-container'); const fullscreenBtn = document.getElementById('fullscreen-btn'); const mapIframe = document.getElementById('map-iframe'); const zonesContainer = document.getElementById('zonesContainer'); const mapSearchInput = document.getElementById('map-search-input'); const mapSearchBtn = document.getElementById('map-search-btn'); const walletStatusDiv = document.getElementById('walletStatus'); const tokenBalanceSpan = document.getElementById('tokenBalance'); const parkingMapModal = document.getElementById('parking-map-modal'); const sessionPanel = document.getElementById('sessionPanel'); const bookingSection = document.getElementById('booking-section'); const receiptSection = document.getElementById('receipt-section');
+    
+    // --- State & Data ---
+    let currentUserBookings = []; let allParkingSpots = {}; let spotsToBook = []; let userTokenBalance = 150;
+    
+    const parkingZonesData = [
+        { id: 'T1', name: "Trinity Academy of Engg", totalSpots: 70, lat: 18.455, lon: 73.935, address: "S. No. 25 & 27, A/P. Pisoli, Saswad - Bopdev - Pune Rd, next to Yewalewadi, Kondhwa, Pune, Maharashtra"},
+        { id: 'K2', name: "Kumar Pacific Mall",      totalSpots: 120, lat: 18.5015, lon: 773.8723, address: "Shankar Sheth Rd, Pune, Maharashtra" },
+        { id: 'W3', name: "Wakad Area (Phoenix)",    totalSpots: 90, lat: 18.6006, lon: 73.7566, address: "Wakad, Pimpri-Chinchwad, Maharashtra" },
+        { id: 'A4', name: "Amanora Mall",            totalSpots: 150, lat: 18.5204, lon: 73.9399, address: "Hadapsar, Pune, Maharashtra" },
+        { id: 'C5', name: "CIDCO",                   totalSpots: 80, lat: 19.8739, lon: 75.3669, address: "CIDCO, Nashik, Maharashtra" },
+        { id: 'M6', name: "Market Yard",             totalSpots: 100, lat: 18.4877, lon: 73.8684, address: "Market Yard, Pune, Maharashtra" },
+        { id: 'B7', name: "Wakdewadi Bus Stand",     totalSpots: 60, lat: 18.5431, lon: 73.8518, address: "Wakdewadi, Shivajinagar, Pune" }
+    ];
+
+    /**
+     * [ADDED] Helper function to generate a QR code locally using the QRious library.
+     * This function is from your second file.
+     */
+    function generateLocalQRCode(data) {
+        const canvas = document.createElement('canvas');
+        new QRious({
+            element: canvas,
+            value: data,
+            size: 200,
+            padding: 10,
+            background: '#f9f9f9', // Light card background for QR
+            foreground: '#000080', // Navy blue from theme for QR dots
+            level: 'H' // High error correction
+        });
+        return canvas.toDataURL();
+    }
+
+    // --- Haversine Distance Function ---
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371e3; // metres
+        const φ1 = lat1 * Math.PI / 180;
+        const φ2 = lat2 * Math.PI / 180;
+        const Δφ = (lat2 - lat1) * Math.PI / 180;
+        const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+        const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+                  Math.cos(φ1) * Math.cos(φ2) *
+                  Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        const d = R * c; // in metres
+        return d / 1000; // in kilometers
+    }
+
+    // --- Display Zones with Distance ---
+    function displayParkingZonesWithDistances() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition((position) => {
+                const userLat = position.coords.latitude;
+                const userLon = position.coords.longitude;
+
+                const updatedZones = parkingZonesData.map(zone => {
+                    const distance = calculateDistance(userLat, userLon, zone.lat, zone.lon);
+                    return { ...zone, distance: distance.toFixed(2) + " km" };
+                });
+
+                // Sort by nearest
+                const sortedZones = updatedZones.sort((a, b) => 
+                    parseFloat(a.distance) - parseFloat(b.distance)
+                );
+
+                // Render UI
+                const list = document.getElementById("parkingZones");
+                list.innerHTML = sortedZones.map(zone => `
+                    <li>
+                      <strong>${zone.name}</strong> <br>
+                      📍 ${zone.address} <br>
+                      🅿️ Spots: ${zone.totalSpots} <br>
+                      📏 Distance: ${zone.distance}
+                    </li>
+                `).join("");
+            }, (error) => {
+                console.error("Error getting user location:", error);
+            });
+        } else {
+            console.log("Geolocation not supported.");
+        }
+    }
+
+    // Call on load
+    displayParkingZonesWithDistances();
+
+    // --- FUNCTIONS ---
+    function initializeAllSpots() { 
+        if (Object.keys(allParkingSpots).length === 0) { // Check added from second file
+            parkingZonesData.forEach(zone => { 
+                allParkingSpots[zone.id] = Array.from({ length: zone.totalSpots }, (_, i) => ({ id: `${zone.id}-${String(i + 1).padStart(2, '0')}`, status: 'vacant' })); 
+            }); 
+        }
+    }
+    
+    function renderZones() {
+        zonesContainer.innerHTML = '';
+        parkingZonesData.forEach(zone => {
+            const availableCount = allParkingSpots[zone.id] ? allParkingSpots[zone.id].filter(s => s.status === 'vacant').length : zone.totalSpots; // Check added from second file
+            zonesContainer.innerHTML += `<div class="zone-card" data-zone-id="${zone.id}" data-lat="${zone.lat}" data-lon="${zone.lon}"><div class="zone-header"><div class="zone-name">${zone.name}</div></div><div class="zone-body"><p>${zone.address}</p><div class="zone-detail"><span>Availability:</span> <span>${availableCount}/${zone.totalSpots}</span></div><button class="btn view-spots-btn" data-zone-id="${zone.id}" data-zone-name="${zone.name}"><i class="fas fa-th-large"></i> View Available Spots</button></div></div>`;
+        });
+    }
+    
+    function renderParkingMap(zoneId) {
+        parkingMapModal.innerHTML = `
+            <div class="modal-content">
+                <span class="modal-close">×</span>
+                <h2 class="card-title"><i class="fas fa-th-large"></i> Select Spots in ${parkingZonesData.find(z => z.id === zoneId).name}</h2>
+                <div id="parking-map-container"></div>
+                <div class="modal-footer">
+                    <span id="selection-counter">Spots Selected: 0</span>
+                    <button id="confirm-spot-selection" class="btn" disabled>Confirm</button>
+                </div>
+            </div>`;
+        
+        const mapContainer = parkingMapModal.querySelector('#parking-map-container');
+        allParkingSpots[zoneId].forEach(spot => {
+            const spotDiv = document.createElement('div');
+            const userBooking = currentUserBookings.find(b => b.spotId === spot.id);
+            let currentStatus = spot.status;
+            if (userBooking && userBooking.status === 'active') { // Logic improved from second file
+                currentStatus = 'booked-by-user';
+            }
+            
+            spotDiv.className = `parking-spot ${currentStatus}`;
+            spotDiv.textContent = spot.id;
+            if (currentStatus === 'vacant') spotDiv.dataset.spotId = spot.id;
+            mapContainer.appendChild(spotDiv);
+        });
+    }
+   
+    function updateSessionPanel() {
+        if (currentUserBookings.length > 0) {
+            let sessionItemsHTML = currentUserBookings.map(booking => {
+                if (booking.status === 'booked') {
+                    const gracePeriodEnd = booking.bookingConfirmationTime + booking.gracePeriodDuration;
+                    return `<li class="session-item">
+                        <div><strong>Spot:</strong> ${booking.spotId}</div>
+                        <div><strong>Ends at:</strong> <span id="countdown-${booking.spotId}">${new Date(gracePeriodEnd).toLocaleTimeString()}</span></div>
+                        <button class="btn check-in-btn" data-spot-id="${booking.spotId}"><i class="fas fa-sign-in-alt"></i> Check-In</button>
+                    </li>`;
+                } else if (booking.status === 'active') {
+                    return `<li class="session-item">
+                        <div><strong>Spot:</strong> ${booking.spotId}</div>
+                        <div><strong>Vehicle:</strong> ${booking.vehicleNo}</div>
+                        <div><strong>Entry:</strong> ${new Date(booking.entryTime).toLocaleTimeString()}</div>
+                        <button class="btn btn-danger end-session-btn" data-spot-id="${booking.spotId}"><i class="fas fa-stop-circle"></i> End Session</button>
+                    </li>`;
+                }
+            }).join('');
+            sessionPanel.innerHTML = `<h2 class="card-title"><i class="fas fa-check-circle"></i> Active Sessions (${currentUserBookings.length})</h2><ul class="session-list">${sessionItemsHTML}</ul>`;
+        } else {
+            sessionPanel.innerHTML = `<h2 class="card-title"><i class="fas fa-info-circle"></i> No Active Session</h2><p>Select a zone to begin.</p>`;
+        }
+    }
+
+    function handleBooking(paymentMethod, form, gracePeriodDurationMs) {
+        const bookingId = `SPK-${Date.now()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
+        const bookingDetails = {
+            bookingId,
+            entryTime: form.datetime.value,
+            fullname: form.fullname.value,
+            mobile: form.mobile.value,
+            primaryVehicle: form.vehicle.value,
+            paymentMethod: paymentMethod,
+            bookedSpots: spotsToBook.join(', '),
+            paymentStatus: "pending"
+        };
+
+        const confirmationTime = Date.now();
+        const zoneId = spotsToBook[0].split('-')[0];
+        const zoneData = parkingZonesData.find(z => z.id === zoneId);
+
+        spotsToBook.forEach(spotId => {
+            currentUserBookings.push({
+                bookingId,
+                spotId: spotId,
+                vehicleNo: bookingDetails.primaryVehicle,
+                entryTime: bookingDetails.entryTime,
+                bookingConfirmationTime: confirmationTime,
+                status: 'booked',
+                gracePeriodDuration: gracePeriodDurationMs,
+                mobile: bookingDetails.mobile,
+                paymentMethod: paymentMethod
+            });
+            const spotIndex = allParkingSpots[zoneId].findIndex(s => s.id === spotId);
+            if (spotIndex > -1) {
+                allParkingSpots[zoneId][spotIndex].status = 'booked';
+            }
+        });
+
+        const allBookings = JSON.parse(localStorage.getItem('allSmartParkBookings')) || [];
+        allBookings.push(bookingDetails);
+        localStorage.setItem('allSmartParkBookings', JSON.stringify(allBookings));
+        updateSessionPanel();
+        generateMapReceipt(bookingDetails, zoneData);
+        bookingSection.innerHTML = '';
+        bookingSection.classList.add('hidden');
+        renderZones();
+        spotsToBook = [];
+        saveStateToLocalStorage(); 
+    }
+
+    // This function is the merged version that uses the LOCAL QR generator
+    function generateMapReceipt(details, zoneData) {
+        receiptSection.classList.remove('hidden');
+        const qrCodeUrl = generateLocalQRCode(details.bookingId); // Using the new local function
+
+        receiptSection.innerHTML = `
+            <h3><i class="fas fa-check-circle"></i> Booking Confirmed!</h3>
+            <div class="receipt-layout">
+                <div id="receipt-map-container">
+                    <iframe id="receipt-map-iframe" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d387190.2798821423!2d${zoneData.lon}!3d${zoneData.lat}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zM40uNTgwMDUgTcKwNy4zNjIzNA!5e0!3m2!1sen!2sin!4v1626343526345!5m2!1sen!2sin&q=${zoneData.lat},${zoneData.lon}(${encodeURIComponent(zoneData.name)})" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                </div>
+                <div class="receipt-details">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <img src="${qrCodeUrl}" alt="Booking Verification QR Code" style="border: 3px solid var(--secondary-accent); border-radius: 8px; background: white;">
+                        <div class="detail-item" style="margin-top: 10px;">
+                            <strong>Booking ID:</strong>
+                            <span style="font-family: monospace; font-size: 1.2rem;">${details.bookingId}</span>
+                        </div>
+                    </div>
+                    <div class="detail-item"><strong>Your Spot(s):</strong><span>${details.bookedSpots}</span></div>
+                    <div class="detail-item"><strong>Name:</strong><span>${details.fullname}</span></div>
+                    <div class="detail-item"><strong>Vehicle No.:</strong><span>${details.primaryVehicle}</span></div>
+                    <div class="detail-item"><strong>Entry Time:</strong><span>${new Date(details.entryTime).toLocaleString()}</span></div>
+                    <div id="receipt-buttons">
+                        <button id="download-receipt" class="btn">Download Text</button>
+                        <button id="send-receipt" class="btn">Send to Mobile</button>
+                    </div>
+                </div>
+            </div>`;
+        receiptSection.scrollIntoView({ behavior: 'smooth' });
+        
+        document.getElementById('send-receipt').addEventListener('click', () => {
+            const message = encodeURIComponent(
+                `✅ *SmartPark Booking Confirmed!*\n\n` +
+                `*Booking ID:* ${details.bookingId}\n` +
+                `*Spots:* ${details.bookedSpots}\n\n` +
+                `Please show the QR code in your app/receipt to the guard.\n\n` +
+                `📍 *Get Directions:*\nhttps://www.google.com/maps?q=${zoneData.lat},${zoneData.lon}`
+            );
+            const whatsappURL = `https://wa.me/91${details.mobile}?text=${message}`;
+            window.open(whatsappURL, "_blank");
+        });
+
+        document.getElementById('download-receipt').addEventListener('click', () => {
+            const receiptText = `SmartPark Booking Receipt\nBooking ID: ${details.bookingId}\nSpots: ${details.bookedSpots}\nName: ${details.fullname}\nVehicle: ${details.primaryVehicle}\nTime: ${new Date(details.entryTime).toLocaleString()}`;
+            const blob = new Blob([receiptText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'SmartPark_Receipt.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+    }
+    
+    function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+        const R = 6371; const toRad = (deg) => deg * (Math.PI / 180);
+        const dLat = toRad(lat2 - lat1); const dLon = toRad(lon2 - lon1);
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+    }
+
+    function proceedToBooking(gracePeriodDurationMs) {
+        parkingMapModal.classList.remove('show');
+        bookingSection.classList.remove('hidden');
+        bookingSection.innerHTML = `<h2>Complete Your Booking</h2>
+            <form id="booking-form">
+                <label>Selected Spots</label>
+                <div id="selected-spots-list">${spotsToBook.map(id => `<span class="spot-tag">${id}</span>`).join('')}</div>
+                <label for="fullname">Full Name</label><input type="text" id="fullname" name="fullname" required />
+                <label for="mobile">Mobile Number</label><input type="tel" id="mobile" name="mobile" pattern="[0-9]{10}" required />
+                <label for="vehicle">Vehicle Number</label><input type="text" id="vehicle" name="vehicle" required />
+                <label for="datetime">Entry Time</label><input type="datetime-local" id="datetime" name="datetime" required />
+                <label for="payment">Payment Method</label>
+                <select id="payment" name="payment" required>
+                    <option value="" disabled selected>Select...</option>
+                    <option value="card">Card</option>
+                    <option value="upi">UPI</option> 
+                    <option value="wallet">SPARK Wallet</option>
+                </select>
+                <button type="submit" class="btn" disabled>Pay & Confirm</button>
+            </form>`;
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        bookingSection.querySelector('#datetime').value = now.toISOString().slice(0, 16);
+        setupBookingFormListeners(gracePeriodDurationMs);
+        bookingSection.scrollIntoView();
+    }
+    function setupBookingFormListeners(gracePeriodDurationMs) {
+        const form = document.getElementById('booking-form');
+        if (!form) return;
+        const paymentSelect = form.querySelector('#payment');
+        const upiDiv = form.querySelector('#upi-payment');
+        const submitBtn = form.querySelector('button[type="submit"]');
+
+        form.addEventListener('input', () => { submitBtn.disabled = !form.checkValidity(); });
+        paymentSelect.addEventListener('change', () => {
+            upiDiv.style.display = paymentSelect.value === 'upi' ? 'block' : 'none';
+            submitBtn.style.display = paymentSelect.value === 'upi' ? 'none' : 'block';
+        });
+        form.addEventListener('submit', (e) => { 
+            e.preventDefault(); 
+            handleBooking(paymentSelect.value, form, gracePeriodDurationMs); 
+        }
+    );
+    
+        const confirmUpiBtn = form.querySelector('#confirm-payment-btn');
+        if (confirmUpiBtn) {
+            confirmUpiBtn.addEventListener('click', () => {
+                if (!form.checkValidity()) { alert("Please fill in all details before confirming payment."); return; }
+                handleBooking('UPI', form, gracePeriodDurationMs);
+            });
+        }
+    }
+    
+    // --- EVENT LISTENERS ---
+    function enterFullscreen() { if (mapContainer.requestFullscreen) { mapContainer.requestFullscreen(); } else if (mapContainer.webkitRequestFullscreen) { mapContainer.webkitRequestFullscreen(); } }
+    fullscreenBtn.addEventListener('click', enterFullscreen);
+    mapSearchBtn.addEventListener('click', () => { const query = mapSearchInput.value; if (query) { const encodedQuery = encodeURIComponent(query); mapIframe.src = `https://www.google.com/maps/embed/v1/place?key=YOUR_API_KEY&q=${encodedQuery}`; } });
+    zonesContainer.addEventListener('click', (e) => {
+        const card = e.target.closest('.zone-card');
+        if (card) { document.getElementById('map-section').scrollIntoView(); const lat = card.dataset.lat; const lon = card.dataset.lon; const zoneName = card.querySelector('.zone-name').textContent; mapIframe.src = `https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15137.99972851218!2d${lon}!3d${lat}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zM40uNTgwMDUgTcKwNy4zNjIzNA!5e0!3m2!1sen!2sin!4v1626343526345!5m2!1sen!2sin&q=${lat},${lon}(${encodeURIComponent(zoneName)})`; }
+        const spotsButton = e.target.closest('.view-spots-btn');
+        if (spotsButton) { renderParkingMap(spotsButton.dataset.zoneId); parkingMapModal.classList.add('show'); }
+    });
+    
+    parkingMapModal.addEventListener('click', (e) => {
+        if (e.target.classList.contains('modal-close')) { parkingMapModal.classList.remove('show'); }
+        const spotDiv = e.target.closest('.parking-spot.vacant, .parking-spot.selected');
+        if (spotDiv) { const spotId = spotDiv.dataset.spotId; const isSelected = spotsToBook.includes(spotId); if (isSelected) { spotsToBook = spotsToBook.filter(id => id !== spotId); spotDiv.classList.remove('selected'); } else { spotsToBook.push(spotId); spotDiv.classList.add('selected'); } parkingMapModal.querySelector('#selection-counter').textContent = `Spots Selected: ${spotsToBook.length}`; parkingMapModal.querySelector('#confirm-spot-selection').disabled = spotsToBook.length === 0; }
+        
+        const confirmBtn = e.target.closest('#confirm-spot-selection');
+        if (confirmBtn) {
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Calculating...';
+
+            const zoneId = spotsToBook[0].split('-')[0];
+            const zoneData = parkingZonesData.find(z => z.id === zoneId);
+
+            if (!navigator.geolocation) {
+                alert("Geolocation is not supported. Using a default 15-minute grace period.");
+                proceedToBooking(15 * 60 * 1000);
+            } else {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const userLat = position.coords.latitude;
+                        const userLon = position.coords.longitude;
+                        const distanceKm = getDistanceFromLatLonInKm(userLat, userLon, zoneData.lat, zoneData.lon);
+                        
+                        const AVERAGE_SPEED_KMPH = 25;
+                        const travelTimeMinutes = (distanceKm / AVERAGE_SPEED_KMPH) * 60;
+                        const BUFFER_MINUTES = 10;
+                        const gracePeriodMinutes = Math.ceil(travelTimeMinutes) + BUFFER_MINUTES;
+
+                        alert(`You are approx. ${distanceKm.toFixed(1)} km away.\nEstimated travel time: ${Math.ceil(travelTimeMinutes)} mins.\nYour booking will be held for ${gracePeriodMinutes} minutes.`);
+                        
+                        const gracePeriodDurationMs = gracePeriodMinutes * 60 * 1000;
+                        proceedToBooking(gracePeriodDurationMs);
+                    },
+                    () => {
+                        alert("Could not get your location. Using a default 15-minute grace period.");
+                        proceedToBooking(15 * 60 * 1000);
+                    }
+                );
+            }
+        }
+    });
+sessionPanel.addEventListener('click', (e) => {
+    const checkInBtn = e.target.closest('.check-in-btn');
+        if (checkInBtn) {
+            const spotIdToCheckIn = checkInBtn.dataset.spotId;
+            const booking = currentUserBookings.find(b => b.spotId === spotIdToCheckIn);
+            const zoneId = spotIdToCheckIn.split('-')[0];
+            const spotIndex = allParkingSpots[zoneId].findIndex(s => s.id === spotIdToCheckIn);
+
+            if (booking && spotIndex > -1) {
+                booking.status = 'active';
+                allParkingSpots[zoneId][spotIndex].status = 'occupied';
+                alert(`Checked in successfully to spot ${spotIdToCheckIn}!`);
+                updateSessionPanel();
+                renderZones();
+                saveStateToLocalStorage();
+            }
+        }
+
+ const endSessionBtn = e.target.closest('.end-session-btn');
+    if (endSessionBtn) {
+        const spotIdToFree = endSessionBtn.dataset.spotId;
+        const bookingToEnd = currentUserBookings.find(b => b.spotId === spotIdToFree);
+
+        if (bookingToEnd) {
+            const entryTime = new Date(bookingToEnd.entryTime).getTime();
+            const exitTime = Date.now();
+            const durationInHours = (exitTime - entryTime) / (1000 * 60 * 60);
+            const parkedHours = Math.ceil(durationInHours);
+
+            let parkingFee = 0;
+               if (parkedHours <= 1) { parkingFee = 30; } 
+            else if (parkedHours <= 2) { parkingFee = 50; } 
+            else if (parkedHours <= 3) { parkingFee = 65; } 
+            else if (parkedHours <= 4) { parkingFee = 80; } 
+            else { parkingFee = 80 + (parkedHours - 4) * 15; }
+            
+             if (bookingToEnd.paymentMethod === 'wallet') {
+                if (userTokenBalance >= parkingFee) {
+                    userTokenBalance -= parkingFee;
+                    localStorage.setItem('spark_balance', userTokenBalance);
+                    updateWalletUI();
+                    alert(`Payment successful!\n${parkingFee.toFixed(2)} SPARK deducted from your wallet.\nNew Balance: ${userTokenBalance.toFixed(2)} SPARK`);
+                    const zoneId = spotIdToFree.split('-')[0];
+                    const spotIndex = allParkingSpots[zoneId].findIndex(s => s.id === spotIdToFree);
+                    if (spotIndex > -1) { allParkingSpots[zoneId][spotIndex].status = 'vacant'; }
+                    currentUserBookings = currentUserBookings.filter(b => b.spotId !== spotIdToFree);
+                    updateSessionPanel(); renderZones(); saveStateToLocalStorage();
+                } else {
+                    alert(`Insufficient Funds!\nRequired: ${parkingFee.toFixed(2)} SPARK\nYour Balance: ${userTokenBalance.toFixed(2)} SPARK\n\nPlease use another payment method.`);
+                }
+            } else {
+                // The merged version now passes the mobile number as required by the new showPaymentModal function
+                showPaymentModal(spotIdToFree, parkedHours, parkingFee, bookingToEnd.mobile);
+            }
+        }
+    }
+});
+
+    document.getElementById('logout-btn').addEventListener('click', e => { e.preventDefault(); sessionStorage.removeItem('userRole'); window.location.href = 'index.html'; });
+    
+    function checkGracePeriodExpirations() {
+        const now = Date.now();
+        const bookingsToCancel = currentUserBookings.filter(booking =>
+            booking.status === 'booked' && now > (booking.bookingConfirmationTime + booking.gracePeriodDuration)
+        );
+
+        if (bookingsToCancel.length > 0) {
+            bookingsToCancel.forEach(booking => {
+                const message = encodeURIComponent(
+                    `❌ SmartPark Cancellation\n\n` +
+                    `Your booking for spot ${booking.spotId} has been automatically cancelled because the grace period expired.\n\n` +
+                    `Please feel free to make a new booking.`
+                );
+                const whatsappURL = `https://wa.me/91${booking.mobile}?text=${message}`;
+                window.open(whatsappURL, "_blank");
+
+                const zoneId = booking.spotId.split('-')[0];
+                const spotIndex = allParkingSpots[zoneId].findIndex(s => s.id === booking.spotId);
+                if (spotIndex > -1) {
+                    allParkingSpots[zoneId][spotIndex].status = 'vacant';
+                }
+            });
+            currentUserBookings = currentUserBookings.filter(booking => !bookingsToCancel.includes(booking));
+            updateSessionPanel();
+            renderZones();
+            saveStateToLocalStorage(); 
+            console.log(`${bookingsToCancel.length} booking(s) cancelled due to grace period expiration.`);
+        }
+    }
+    setInterval(checkGracePeriodExpirations, 60000);
+
+    document.addEventListener('DOMContentLoaded', () => { 
+        loadStateFromLocalStorage();
+        renderZones(); 
+        initializeAllSpots();
+        updateSessionPanel(); 
+        tokenBalanceSpan.textContent = `${userTokenBalance} SPARK`;
+        saveStateToLocalStorage 
+        document.getElementById('connectWallet').addEventListener('click', connectWallet);
+        document.getElementById('disconnectWallet').addEventListener('click', disconnectWallet);
+        updateWalletUI(); 
+        const instructionFlag = document.getElementById('instruction-flag');
+        const instructionsModal = document.getElementById('instructions-modal');
+        const instructionsModalClose = document.getElementById('instructions-modal-close');
+        const instructionsText = document.getElementById('instructions-text').innerText;
+        instructionFlag.addEventListener('click', () => {
+            instructionsModal.classList.add('show');
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(instructionsText);
+                utterance.rate = 0.9; utterance.pitch = 1;
+                window.speechSynthesis.speak(utterance);
+            } else {
+                console.log('Text-to-speech not supported in this browser.');
+            }
+        });
+        function closeInstructions() {
+            instructionsModal.classList.remove('show');
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+            }
+        }
+        instructionsModalClose.addEventListener('click', closeInstructions);
+        instructionsModal.addEventListener('click', (e) => {
+            if (e.target === instructionsModal) {
+                closeInstructions();
+            }
+        });
+    });
+
+    function saveStateToLocalStorage() {
+        try {
+            localStorage.setItem('smartpark_all_spots_status', JSON.stringify(allParkingSpots));
+            const customerName = sessionStorage.getItem('customerName');
+            if (customerName) {
+                const userStorageKey = 'smartpark_bookings_' + customerName;
+                localStorage.setItem(userStorageKey, JSON.stringify(currentUserBookings));
+            }
+        } catch (error) {
+            console.error("Error saving state to localStorage:", error);
+        }
+    }
+
+    function loadStateFromLocalStorage() {
+        try {
+            const savedAllSpots = localStorage.getItem('smartpark_all_spots_status');
+            if (savedAllSpots) {
+                allParkingSpots = JSON.parse(savedAllSpots);
+            } else {
+                initializeAllSpots();
+            } const savedBalance = localStorage.getItem('spark_balance');
+            if (savedBalance) {
+                userTokenBalance = parseFloat(savedBalance);
+            }
+            const customerName = sessionStorage.getItem('customerName');
+            if (customerName) {
+                const userStorageKey = 'smartpark_bookings_' + customerName;
+                const savedUserBookings = localStorage.getItem(userStorageKey);
+                if (savedUserBookings) {
+                    currentUserBookings = JSON.parse(savedUserBookings);
+                }
+            }
+        } catch (error) {
+            console.error("Error loading state from localStorage. Starting fresh.", error);
+            initializeAllSpots();
+            currentUserBookings = [];
+        }
+    }
+    
+    // This is the merged version of the function from the second file, now using local QR codes
+    function showPaymentModal(spotId, hours, fee, mobile) {
+        const checkoutModal = document.getElementById('checkout-payment-modal');
+        const payeeVPA = '9421605173@axl';
+        const payeeName = 'SmartPark';
+        const transactionNote = `Payment for Spot ${spotId}`;
+        const amount = fee.toFixed(2);
+        const upiIntentUrl = `upi://pay?pa=${encodeURIComponent(payeeVPA)}&pn=${encodeURIComponent(payeeName)}&am=${encodeURIComponent(amount)}&cu=INR&tn=${encodeURIComponent(transactionNote)}`;
+        const qrCodeImageUrl = generateLocalQRCode(upiIntentUrl);
+
+        checkoutModal.innerHTML = `
+            <div class="modal-content">
+                <span class="modal-close" id="checkout-modal-close">×</span>
+                <h2 class="card-title"><i class="fas fa-money-check-alt"></i> Process Payment</h2>
+                <div style="text-align: center; padding: 1rem;">
+                    <p style="margin-bottom: 0.5rem;"><strong>Spot:</strong> ${spotId}</p>
+                    <p style="margin-bottom: 1rem;"><strong>Parking Duration:</strong> ${hours} hour(s)</p>
+                    <h3 style="margin: 1rem 0; font-size: 1.5rem;">Total Fee: ₹${fee}</h3>
+                    <a href="${upiIntentUrl}">
+                        <img src="${qrCodeImageUrl}" alt="UPI QR Code" style="margin: 1rem 0; border: 3px solid var(--primary-accent); border-radius: 8px; cursor: pointer;"/>
+                    </a>
+                    <p style="font-weight: bold; color: var(--secondary-accent);">On Mobile? Tap the QR Code to Pay.</p>
+                    <p style="font-size: 0.9rem; color: #555;">On Desktop? Scan with your UPI app.</p>
+                    <button id="confirm-checkout-payment-btn" class="btn" style="margin-top: 1.5rem; width: 100%;">I Have Completed the Payment</button>
+                </div>
+            </div>`;
+        checkoutModal.classList.add('show');
+
+        document.getElementById('checkout-modal-close').addEventListener('click', () => checkoutModal.classList.remove('show'));
+        document.getElementById('confirm-checkout-payment-btn').addEventListener('click', () => {
+            const exitTime = new Date().toISOString();
+            const allBookings = JSON.parse(localStorage.getItem('allSmartParkBookings')) || [];
+            const bookingToEnd = allBookings.find(b => b.bookedSpots.includes(spotId.trim()) && b.mobile == mobile && !b.exitTime);
+
+            if (bookingToEnd) {
+                bookingToEnd.paymentStatus = "received";
+                bookingToEnd.exitTime = exitTime;
+                bookingToEnd.finalFee = fee.toFixed(2);
+                bookingToEnd.durationHours = hours;
+            }
+            localStorage.setItem('allSmartParkBookings', JSON.stringify(allBookings));
+            alert(`Payment of ₹${fee} confirmed! Session for spot ${spotId} has ended.`);
+            
+            const zoneId = spotId.split('-')[0];
+            const spotIndex = allParkingSpots[zoneId].findIndex(s => s.id === spotId);
+            if (spotIndex > -1) { allParkingSpots[zoneId][spotIndex].status = 'vacant'; }
+            
+            currentUserBookings = currentUserBookings.filter(b => b.spotId !== spotId);
+            
+            updateSessionPanel();
+            renderZones();
+            saveStateToLocalStorage();
+            checkoutModal.classList.remove('show');
+        });
+    }
+
+    // This is the merged set of wallet functions from the second file
+    function updateWalletUI() {
+        const connectBtn = document.getElementById('connectWallet');
+        const disconnectBtn = document.getElementById('disconnectWallet');
+        const isConnected = sessionStorage.getItem('walletConnected') === 'true';
+
+        if (isConnected) {
+            walletStatusDiv.innerHTML = `<i class="fas fa-check-circle"></i> <span>Wallet Connected</span>`;
+            walletStatusDiv.classList.add('connected');
+            tokenBalanceSpan.textContent = `${userTokenBalance.toFixed(2)} SPARK`;
+            connectBtn.classList.add('hidden');
+            disconnectBtn.classList.remove('hidden');
+        } else {
+            walletStatusDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> <span>Wallet not connected</span>`;
+            walletStatusDiv.classList.remove('connected');
+            tokenBalanceSpan.textContent = `0 SPARK`;
+            connectBtn.classList.remove('hidden');
+            disconnectBtn.classList.add('hidden');
+        }
+        updatePaymentOptions(isConnected);
+    }
+
+    function updatePaymentOptions(isEnabled) {
+        const paymentSelect = document.querySelector('#payment');
+        if (!paymentSelect) return;
+
+        const walletOption = paymentSelect.querySelector('option[value="wallet"]');
+        if (walletOption) {
+            walletOption.disabled = !isEnabled;
+            if (!isEnabled && paymentSelect.value === 'wallet') {
+                paymentSelect.value = "";
+            }
+        }
+    }
+
+    function connectWallet() {
+        sessionStorage.setItem('walletConnected', 'true');
+        const savedBalance = localStorage.getItem('spark_balance');
+        if (savedBalance) {
+            userTokenBalance = parseFloat(savedBalance);
+        } else {
+            userTokenBalance = 150;
+            localStorage.setItem('spark_balance', userTokenBalance);
+        }
+        alert(`Wallet connected successfully!\nYour balance is: ${userTokenBalance.toFixed(2)} SPARK`);
+        updateWalletUI();
+    }
+
+    function disconnectWallet() {
+        sessionStorage.setItem('walletConnected', 'false');
+        alert('Wallet has been disconnected.');
+        updateWalletUI();
+    }
+  </script>
+</body>
+
+</html>
+

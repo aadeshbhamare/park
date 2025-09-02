@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SmartPark - Smart Parking Token System</title>
+  <head>
+  <link rel="stylesheet" href="style.css" />
+  <script src="script.js" defer></script>
+<script src="ajax.jsx" defer></script>
+
+  <style>
+/* FOOTER */
+footer {
+  background-color: #111;
+  color: #00ffd5;
+  padding: 2rem 1rem;
+  border-top: 1px solid #00ffd5;
+  text-align: center;
+}
+
+.footer-img {
+  width: 32px;
+  height: 32px;
+  vertical-align: middle;
+}
+
+.footer-container {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.footer-logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.footer-links {
+  margin-bottom: 1rem;
+}
+
+.footer-links a {
+  margin: 0 0.8rem;
+  color: #00ffd5;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.footer-links a:hover {
+  color: #0ff;
+}
+
+.footer-copy {
+  font-size: 0.9rem;
+  color: #55fff7;
+}
+
+    /* Reset and base */
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #121212;
+      color: #00ffd5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    /* HEADER */
+    header {
+      background: #111;
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #00ffd5;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    header .logo {
+      font-weight: bold;
+      font-size: 1.5rem;
+      cursor: default;
+    }
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 1.5rem;
+      margin: 0;
+      padding: 0;
+    }
+    nav a {
+      text-decoration: none;
+      color: #00ffd5;
+      font-weight: 600;
+      transition: color 0.3s;
+    }
+    nav a:hover {
+      color: #0ff;
+    }
+     
+    /* HERO */
+    .hero {
+      padding: 4rem 2rem 3rem;
+      text-align: center;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .hero h1 {
+      font-size: 3rem;
+      margin-bottom: 0.5rem;
+    }
+    .hero p {
+      font-size: 1.25rem;
+      color: #55fff7;
+      margin-bottom: 2rem;
+      line-height: 1.5;
+    }
+    .hero button {
+      background: #00ffd5;
+      border: none;
+      color: #121212;
+      font-weight: 700;
+      padding: 0.75rem 2rem;
+      border-radius: 30px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .hero button:hover {
+      background: #00e6bf;
+    }
+
+    /* BOOKING FORM */
+    #booking-section {
+      max-width: 600px;
+      margin: 2rem auto 3rem;
+      background: #1a1a1a;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 0 15px #00ffd5aa;
+    }
+    #booking-section h2 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      font-weight: 700;
+      color: #00ffd5;
+    }
+    form label {
+      display: block;
+      margin-bottom: 0.3rem;
+      font-weight: 600;
+      color: #00ffd5;
+    }
+    form input,
+    form select {
+      width: 100%;
+      padding: 0.6rem 0.8rem;
+      margin-bottom: 1.2rem;
+      border-radius: 6px;
+      border: 1.5px solid #00ffd5;
+      background: #121212;
+      color: #00ffd5;
+      font-size: 1rem;
+      outline-offset: 2px;
+      transition: border-color 0.3s;
+    }
+    form input:focus,
+    form select:focus {
+      border-color: #0ff;
+    }
+    form small {
+      display: block;
+      margin-top: -1rem;
+      margin-bottom: 1rem;
+      font-size: 0.85rem;
+      color: #00ffd5aa;
+    }
+    form button[type="submit"],
+    #upi-payment button,
+    #download-receipt,
+    #send-receipt {
+      width: 100%;
+      padding: 0.75rem 0;
+      background: #00ffd5;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: #121212;
+      cursor: pointer;
+      margin-top: 0.5rem;
+      transition: background-color 0.3s;
+    }
+    form button[type="submit"]:hover,
+    #upi-payment button:hover,
+    #download-receipt:hover,
+    #send-receipt:hover {
+      background: #00e6bf;
+    }
+
+    /* UPI payment section */
+    #upi-payment {
+      display: none;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    #upi-payment p {
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: #00ffd5;
+    }
+    #upi-payment img {
+      width: 150px;
+      height: 150px;
+      margin-bottom: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #00ffd5aa;
+    }
+
+    /* Receipt section */
+    #receipt-section {
+      max-width: 600px;
+      margin: 0 auto 3rem;
+      background: #222;
+      color: #0f0;
+      padding: 1.5rem;
+      border-radius: 10px;
+      font-family: monospace;
+      white-space: pre-wrap;
+      display: none;
+    }
+    #receipt-section h3 {
+      margin-top: 0;
+      margin-bottom: 1rem;
+      color: #00ffd5;
+      text-align: center;
+    }
+    #receipt-section button {
+      width: auto;
+      margin-top: 1rem;
+      padding: 0.5rem 1.5rem;
+      display: inline-block;
+    }
+    #send-receipt {
+      background: #008000;
+      color: white;
+      margin-left: 1rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      .hero h1 {
+        font-size: 2.2rem;
+      }
+      #booking-section, #receipt-section {
+        margin: 1rem;
+      }
+    }
+    .banner-img {
+      width: 100%;
+      height: auto;
+    }
+  </style>
+</head>
+<body>
+   <script>
+    // Check if the 'loggedIn' flag is not 'true' in sessionStorage
+    if (sessionStorage.getItem('loggedIn') !== 'true') {
+      // If the user is not logged in, redirect them to the login page
+      window.location.href = 'index.html';
+    }
+  </script>
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo">SmartPark</div>
+    <nav>
+      <ul>
+        <li><a href="#booking-section">Book Now</a></li>
+        <li><a href="#hero">Home</a></li>
+        <!-- Add a logout button -->
+        <li><a href="#" id="logout-btn">Logout</a></li>
+      </ul>
+    
+
+    </nav>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero" id="hero">
+<img src="C:\xampp\htdocs\parking/1.png" alt="Smart Parking Banner" class="banner-img">
+    <p>Reserve your parking slot easily with instant payment and secure tokens. Choose your slot, vehicle type, and pay online!</p>
+    <button onclick="document.getElementById('booking-section').scrollIntoView({behavior:'smooth'})">Book Your Slot</button>
+  </section>
+
+
+  <!-- BOOKING FORM -->
+  <section id="booking-section">
+    <h2>Book Your Parking Slot</h2>
+    <form id="booking-form">
+      <label for="fullname">Full Name</label>
+      <input type="text" id="fullname" name="fullname" placeholder="John Doe" required />
+
+      <label for="mobile">Mobile Number</label>
+      <input type="tel" id="mobile" name="mobile" placeholder="+1 234 567 8901" pattern="[0-9+ ]{7,15}" required />
+
+      <label for="vehicle">Vehicle Number</label>
+      <input type="text" id="vehicle" name="vehicle" placeholder="ABC-1234" required />
+
+      <label for="email">Email Address</label>
+      <input type="email" id="email" name="email" placeholder="you@example.com" required />
+
+      <label for="datetime">Date & Time</label>
+      <input type="datetime-local" id="datetime" name="datetime" required />
+
+      <label for="slot">Select Slot</label>
+      <select id="slot" name="slot" disabled required>
+        <option value="" disabled selected>Select your slot</option>
+        <option value="A1">A1</option>
+        <option value="B1">B1</option>
+        <option value="C1">C1</option>
+        <option value="D1">D1</option>
+        <option value="E1">E1</option>
+      </select>
+      <small>* Each slot represents 100 parking spaces available</small>
+
+      <label for="vehicleType">Vehicle Type</label>
+      <select id="vehicleType" name="vehicleType" disabled required>
+        <option value="" disabled selected>Select vehicle type</option>
+        <option value="2wheeler">2-Wheeler</option>
+        <option value="4wheeler">4-Wheeler</option>
+      </select>
+
+      <label for="payment">Payment Method</label>
+      <select id="payment" name="payment" required>
+        <option value="" disabled selected>Select payment method</option>
+        <option value="card">Credit / Debit Card</option>
+        <option value="upi">UPI</option>
+        <option value="wallet">Wallet</option>
+      </select>
+
+      <div id="upi-payment">
+        <p>Scan this UPI QR code to pay:</p>
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=smartpark@upi&pn=SmartPark&am=100" alt="UPI QR Code" />
+        <button type="button" id="confirm-payment-btn">Confirm Payment</button>
+      </div>
+      </div>
+
+      <button type="submit" id="submit-btn">Pay & Confirm</button>
+    </form>
+  </section>
+
+  <!-- RECEIPT SECTION -->
+  <section id="receipt-section">
+    <h3>Booking Receipt</h3>
+    <pre id="receipt-content"></pre>
+    <button id="download-receipt">Download Receipt</button>
+    <button id="send-receipt">Send to Mobile</button>
+  </section>
+  <script>
+// ...existing code...
+    // All your existing JavaScript for the booking form goes here...
+    // --- Add this new code for the logout button ---
+    const logoutBtn = document.getElementById('logout-btn');
+    logoutBtn.addEventListener('click', (event) => {
+      event.preventDefault(); // Prevent the link from navigating
+      // 1. Remove the loggedIn flag from session storage
+      sessionStorage.removeItem('loggedIn');
+      // 2. Redirect the user back to the login page
+      window.location.href = 'index.html';
+    });
+    // Elements
+/*
+const mobile = document.getElementById("mobile").value;
+const message = encodeURIComponent("✅ Parking booked! Your slot is confirmed. Thank you!");
+const whatsappURL = `https://wa.me/91${mobile}?text=${message}`;
+window.open(whatsappURL, "_blank");
+*/
+   
+    const fullname = document.getElementById('fullname');
+    const mobile = document.getElementById('mobile');
+    const vehicle = document.getElementById('vehicle');
+    const email = document.getElementById('email');
+    const datetime = document.getElementById('datetime');
+    const slot = document.getElementById('slot');
+    const vehicleType = document.getElementById('vehicleType');
+    const payment = document.getElementById('payment');
+    const upiPaymentDiv = document.getElementById('upi-payment');
+    const confirmPaymentBtn = document.getElementById('confirm-payment-btn');
+    const bookingForm = document.getElementById('booking-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const receiptSection = document.getElementById('receipt-section');
+    const receiptContent = document.getElementById('receipt-content');
+    const downloadReceiptBtn = document.getElementById('download-receipt');
+    const sendReceiptBtn = document.getElementById('send-receipt');
+
+    // Enable slot & vehicle type only after filling personal details
+    function checkDetailsFilled() {
+      if (
+        fullname.value.trim() !== '' &&
+        mobile.validity.valid &&
+        vehicle.value.trim() !== '' &&
+        email.validity.valid &&
+        datetime.value !== ''
+      ) {
+        slot.disabled = false;
+        vehicleType.disabled = false;
+      } else {
+        slot.disabled = true;
+        vehicleType.disabled = true;
+        slot.value = '';
+        vehicleType.value = '';
+      }
+    }
+
+    [fullname, mobile, vehicle, email, datetime].forEach(input => {
+      input.addEventListener('input', checkDetailsFilled);
+    });
+
+    // Show or hide UPI payment QR code based on payment method
+    payment.addEventListener('change', () => {
+      if(payment.value === 'upi'){
+        upiPaymentDiv.style.display = 'block';
+        submitBtn.style.display = 'none';
+      } else {
+        upiPaymentDiv.style.display = 'none';
+        submitBtn.style.display = 'inline-block';
+      }
+    });
+
+    // On Confirm Payment (UPI)
+    confirmPaymentBtn.addEventListener('click', () => {
+      alert('Payment successful via UPI! Generating your receipt...');
+
+      // Hide QR and submit button
+      upiPaymentDiv.style.display = 'none';
+      submitBtn.style.display = 'none';
+
+      generateReceipt('UPI');
+    });
+
+    // Generate and show receipt content
+    function generateReceipt(paymentMethod) {
+      const receiptText = `
+--- SmartPark Booking Receipt ---
+
+Name: ${fullname.value}
+Mobile: ${mobile.value}
+Email: ${email.value}
+Vehicle No.: ${vehicle.value}
+Date & Time: ${new Date(datetime.value).toLocaleString()}
+Slot: ${slot.value}
+Vehicle Type: ${vehicleType.options[vehicleType.selectedIndex].text}
+Payment Method: ${paymentMethod}
+
+Thank you for choosing SmartPark!
+`;
+      receiptContent.textContent = receiptText;
+      receiptSection.style.display = 'block';
+    }
+
+    // Download receipt as .txt file
+    downloadReceiptBtn.addEventListener('click', () => {
+      const blob = new Blob([receiptContent.textContent], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'SmartPark_Booking_Receipt.txt';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    // Simulate sending receipt to mobile
+    sendReceiptBtn.addEventListener('click', () => {
+      alert(`Receipt sent to mobile number: ${mobile.value}`);
+    });
+
+    // Handle form submission for non-UPI payments
+    bookingForm.addEventListener('submit', e => {
+      e.preventDefault();
+
+      if(payment.value === 'upi'){
+        alert('Please confirm UPI payment using the QR code.');
+        return;
+      }
+
+      generateReceipt(payment.options[payment.selectedIndex].text);
+
+      // Optionally, reset form after booking
+      // bookingForm.reset();
+      // slot.disabled = true;
+      // vehicleType.disabled = true;
+    });
+  </script>
+<!-- FOOTER -->
+        <img src="C:\xampp\htdocs\parking/13.png" alt="Smart Parking Banner" class="footer-img"></a>
+  <div class="footer-container">
+    <div class="footer-logo">🚗 SmartPark</div>
+    <div class="footer-links">
+      <a href="#hero">Home</a>
+      <a href="#booking-section">Book Slot
+    <a href="privacy.html">Privacy Policy</a>
+      <a href="terms.html">Terms of Use</a>
+    </div>
+    <p class="footer-copy">© 2025 SmartPark. Built with ❤️ by Aadesh Bhamare.</p>
+  </div>
+</footer>
+
+</body>
+</html>

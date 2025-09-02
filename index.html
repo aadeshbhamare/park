@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Customer/Admin Sign In</title>
+<style>
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap");
+
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: "Montserrat", sans-serif; }
+
+body {
+    background: linear-gradient(170deg, #FF9933, #FFFFFF, #138808);
+    background-attachment: fixed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    min-height: 100vh;
+    gap: 2rem;
+    padding: 1rem;
+}
+
+.container {
+    position: relative;
+    overflow: hidden;
+    width: 768px;
+    max-width: 100%;
+    min-height: 480px;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+}
+
+.container h1 { color: #000080; margin-bottom: 0.5rem; }
+.container p { font-size: 14px; line-height: 1.6; letter-spacing: 0.3px; color: #333; padding: 0 1rem; }
+.container span { font-size: 12px; color: #138808; font-weight: bold; }
+.container a { color: #138808; font-size: 13px; text-decoration: none; }
+.container a:hover { text-decoration: underline; }
+
+.container button { background-color: #FF9933; color: #121212; font-size: 12px; padding: 10px 45px; border: 1px solid transparent; border-radius: 8px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; cursor: pointer; transition: transform 0.2s ease; }
+.container button:hover { transform: scale(1.05); }
+.container button.hidden { background-color: transparent; border-color: #121212; color: #121212; }
+
+.container form { background-color: transparent; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 0.75rem; padding: 0 40px; height: 100%; width: 100%; }
+.container input { background-color: #fff; border: 1px solid #138808; padding: 12px 15px; font-size: 13px; border-radius: 8px; width: 100%; outline: none; color: #333; margin: 0; }
+.container input:focus { border-color: #FF9933; }
+
+.social-icons { margin-top: 1rem; }
+.social-icons a { border: 1px solid #138808; border-radius: 50%; display: inline-flex; justify-content: center; align-items: center; margin: 0 5px; width: 40px; height: 40px; color: #138808; transition: background-color 0.2s, color 0.2s; }
+.social-icons a:hover { background-color: #138808; color: #fff; }
+
+.toggle { height: 100%; background: linear-gradient(to right, #138808, #FF9933); color: #fff; position: relative; left: -100%; width: 200%; transform: translateX(0); transition: all 0.6s ease-in-out; }
+.toggle-panel h1, .toggle-panel p { color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+.container.active .toggle { transform: translateX(50%); }
+
+.login-toggle-container { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 1rem; padding: 10px 20px; background: rgba(0,0,0,0.4); border-radius: 50px; }
+.toggle-label { font-weight: 600; color: #fff; text-shadow: 0 1px 2px #000; }
+.toggle-switch { position: relative; display: inline-block; width: 60px; height: 34px; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #fff; border: 1px solid #ccc; transition: .4s; border-radius: 34px; }
+.slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 3px; background-color: #000080; transition: .4s; border-radius: 50%; }
+input:checked + .slider { background-color: #138808; }
+input:checked + .slider:before { background-color: #FF9933; transform: translateX(26px); }
+
+.form-container { position: absolute; top: 0; height: 100%; transition: transform 0.6s ease-in-out, opacity 0.6s ease-in-out, z-index 0.6s ease-in-out; }
+.sign-in { left: 0; width: 50%; z-index: 2; }
+.container.active .sign-in { transform: translateX(100%); opacity: 0; z-index: 1; }
+.sign-up { left: 0; width: 50%; opacity: 0; z-index: 1; }
+.container.active .sign-up { transform: translateX(100%); opacity: 1; z-index: 5; animation: move 0.6s; }
+
+@keyframes move { 0%, 49.99% { opacity: 0; z-index: 1; } 50%, 100% { opacity: 1; z-index: 5; } }
+
+.toggle-container { position: absolute; top: 0; left: 50%; width: 50%; height: 100%; overflow: hidden; transition: all 0.6s ease-in-out; border-radius: 150px 0 0 100px; z-index: 100; }
+.container.active .toggle-container { transform: translateX(-100%); border-radius: 0 150px 100px 0; }
+.toggle-panel { position: absolute; width: 50%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; padding: 0 40px; text-align: center; top: 0; transform: translateX(0); transition: all 0.6s ease-in-out; }
+.toggle-left { transform: translateX(-200%); }
+.container.active .toggle-left { transform: translateX(0); }
+.toggle-right { right: 0; transform: translateX(0); }
+.container.active .toggle-right { transform: translateX(200%); }
+.hidden-visually { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- Customer/Admin Toggle -->
+<div class="login-toggle-container">
+    <span class="toggle-label">Customer</span>
+    <label class="toggle-switch">
+        <input type="checkbox" id="role-toggle">
+        <span class="slider"></span>
+    </label>
+    <span class="toggle-label">Admin</span>
+</div>
+
+<!-- Main Form Container -->
+<div class="container" id="container">
+    <div class="form-container sign-up">
+        <form id="signup-form">
+            <h1>Create Account</h1>
+            <span>Use your email for registration</span>
+            <input type="text" id="signup-name" placeholder="Name" required />
+            <input type="email" id="signup-email" placeholder="Email" required />
+            <input type="password" id="signup-password" placeholder="Password" required />
+            <button type="submit">Sign Up</button>
+        </form>
+    </div>
+    <div class="form-container sign-in">
+        <form id="signin-form">
+            <h1>Sign In</h1>
+            <span>Use your email or username</span>
+            <input type="text" id="signin-email-user" placeholder="Email or Username" required />
+            <input type="password" id="signin-password" placeholder="Password" required/>
+            <button type="submit">Sign In</button>
+        </form>
+    </div>
+    <div class="toggle-container">
+        <div class="toggle">
+            <div class="toggle-panel toggle-left">
+                <h1>Welcome Back!</h1>
+                <p>To keep connected please sign in with your details</p>
+                <button class="hidden" id="login">Sign In</button>
+            </div>
+            <div class="toggle-panel toggle-right">
+                <h1>Hello, Friend!</h1>
+                <p>Enter your personal details and start your journey with us</p>
+                <button class="hidden" id="register">Sign Up</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Local Storage Helpers
+    function getUsers() { return JSON.parse(localStorage.getItem('users') || '[]'); }
+    function saveUsers(users) { localStorage.setItem('users', JSON.stringify(users)); }
+
+    // Toggle Container Animation
+    const container = document.getElementById('container');
+    document.getElementById('register').addEventListener('click', () => container.classList.add('active'));
+    document.getElementById('login').addEventListener('click', () => container.classList.remove('active'));
+
+    const roleToggle = document.getElementById('role-toggle');
+     const signInForm = document.getElementById('signin-form');
+    const signUpFormContainer = document.querySelector('.form-container.sign-up');
+    const toggleContainer = document.querySelector('.toggle-container');
+    const signInEmailUserInput = document.getElementById('signin-email-user');
+    const signInTitle = signInForm.querySelector('h1');
+    const signInSpan = signInForm.querySelector('span');
+
+
+    roleToggle.addEventListener('change', function() {
+        // Reset the form to clear any previous input
+        signInForm.reset(); 
+        
+        if (this.checked) { // Admin Mode is ON
+            // 1. Hide the "Sign Up" form and the entire toggle overlay
+            signUpFormContainer.style.display = 'none';
+            toggleContainer.style.display = 'none';
+
+            // 2. Make sure the main container isn't in the "active" (sign-up) state
+            container.classList.remove('active');
+
+            // 3. Update the Sign In form for Admin login
+            signInTitle.textContent = "Admin Login";
+            signInEmailUserInput.placeholder = "Username";
+            if (signInSpan) signInSpan.style.display = 'none'; // Hide the "or use your email" span
+
+        } else { // Customer Mode is ON
+            // 1. Restore the "Sign Up" form and the toggle overlay
+            signUpFormContainer.style.display = ''; // Reverts to default CSS display
+            toggleContainer.style.display = '';
+
+            // 2. Update the Sign In form back to Customer login
+            signInTitle.textContent = "Sign In";
+            signInEmailUserInput.placeholder = "Email or Username";
+            if (signInSpan) signInSpan.style.display = '';
+        }
+    });
+
+    // --- NEW SIGN UP LOGIC WITH PASSWORD UPDATE FEATURE ---
+    document.getElementById('signup-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('signup-name').value;
+        const email = document.getElementById('signup-email').value.toLowerCase();
+        const newPassword = document.getElementById('signup-password').value;
+        let users = getUsers();
+
+        const userIndex = users.findIndex(u => u.email === email);
+
+        if (userIndex > -1) {
+            // User exists, ask to update password
+            const wantsToUpdate = confirm("An account with this email already exists. Do you want to update your password and sign in?");
+            
+            if (wantsToUpdate) {
+                users[userIndex].password = newPassword;
+                saveUsers(users);
+
+                sessionStorage.setItem('userRole', 'customer');
+                sessionStorage.setItem('customerName', users[userIndex].name);
+                alert("Password updated successfully! You are now logged in.");
+                window.location.href = 'parking10.html';
+            } else {
+                alert("Password not updated. Please sign in with your old password.");
+                container.classList.remove('active');
+            }
+            return;
+        }
+
+        // Standard logic for a completely new user
+        users.push({ name, email, password: newPassword });
+        saveUsers(users);
+        alert("Account created successfully! Please sign in.");
+        container.classList.remove('active');
+    });
+
+    // --- SIGN IN LOGIC (Unchanged) ---
+    document.getElementById('signin-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const emailOrUser = document.getElementById('signin-email-user').value.toLowerCase();
+        const password = document.getElementById('signin-password').value;
+        const isAdminMode = roleToggle.checked;
+
+        if (isAdminMode) {
+            if (emailOrUser === 'admin' && password === 'admin') {
+                sessionStorage.setItem('userRole', 'admin');
+                alert("Admin login successful!");
+                window.location.href = 'admin.html';
+            } else {
+                alert("Invalid Admin credentials.");
+            }
+        } else {
+            let users = getUsers();
+            let user = users.find(u => u.email === emailOrUser && u.password === password);
+            
+            if (user) {
+                sessionStorage.setItem('userRole', 'customer');
+                sessionStorage.setItem('customerName', user.name);
+                alert(`Welcome back, ${user.name}!`);
+                window.location.href = 'parking10.html';
+            } else {
+                alert("Invalid email or password. Please sign up if you don't have an account.");
+            }
+        }
+    });
+</script>
+</body>
+</html>
