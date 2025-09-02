@@ -787,64 +787,53 @@ Contact: SmartPark Support
         return d / 1000; // in kilometers
     }
 
-    // --- Display Zones with Distance ---
-    function displayParkingZonesWithDistances() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition((position) => {
-                const userLat = position.coords.latitude;
-                const userLon = position.coords.longitude;
+   // --- Display Zones with Distance ---
+function displayParkingZonesWithDistances() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((position) => {
+            const userLat = position.coords.latitude;
+            const userLon = position.coords.longitude;
 
-                const updatedZones = parkingZonesData.map(zone => {
-                    const distance = calculateDistance(userLat, userLon, zone.lat, zone.lon);
-                    return { ...zone, distance: distance.toFixed(2) + " km" };
-                });
-
-                // Sort by nearest
-                const sortedZones = updatedZones.sort((a, b) => 
-                    parseFloat(a.distance) - parseFloat(b.distance)
-                );
-
-                // Render UI
-                const list = document.getElementById("parkingZones");
-                if (list) {
-                    list.innerHTML = sortedZones.map(zone => `
-                        <li>
-                          <strong>${zone.name}</strong> <br>
-                          📍 ${zone.address} <br>
-                          🅿️ Spots: ${zone.totalSpots} <br>
-                          📏 Distance: ${zone.distance}
-                        </li>
-                    `).join("");
-                }
-            }, (error) => {
-                console.error("Error getting user location:", error);
+            const updatedZones = parkingZonesData.map(zone => {
+                const distance = calculateDistance(userLat, userLon, zone.lat, zone.lon);
+                return { ...zone, distance: distance.toFixed(2) + " km" };
             });
-        } else {
-            console.log("Geolocation not supported.");
-        }
+
+            // Sort by nearest
+            const sortedZones = updatedZones.sort((a, b) => 
+                parseFloat(a.distance) - parseFloat(b.distance)
+            );
+
+            // Render UI
+            const list = document.getElementById("parkingZones");
+            list.innerHTML = sortedZones.map(zone => `
+                <li>
+                  <strong>${zone.name}</strong> <br>
+                  📍 ${zone.address} <br>
+                  🅿️ Spots: ${zone.totalSpots} <br>
+                  📏 Distance: ${zone.distance}
+                </li>
+            `).join("");
+        }, (error) => {
+            console.error("Error getting user location:", error);
+        });
+    } else {
+        console.log("Geolocation not supported.");
     }
+}
 
     // Call on load
     displayParkingZonesWithDistances();
-    
     // --- FUNCTIONS ---
-    function initializeAllSpots() { 
-        parkingZonesData.forEach(zone => { 
-            allParkingSpots[zone.id] = Array.from({ length: zone.totalSpots }, (_, i) => ({ 
-                id: `${zone.id}-${String(i + 1).padStart(2, '0')}`, 
-                status: 'vacant' 
-            })); 
-        }); 
-    }
+    function initializeAllSpots() { parkingZonesData.forEach(zone => { allParkingSpots[zone.id] = Array.from({ length: zone.totalSpots }, (_, i) => ({ id: `${zone.id}-${String(i + 1).padStart(2, '0')}`, status: 'vacant' })); }); }
     
     function renderZones() {
         zonesContainer.innerHTML = '';
         parkingZonesData.forEach(zone => {
-            const availableCount = allParkingSpots[zone.id] ? allParkingSpots[zone.id].filter(s => s.status === 'vacant').length : 0;
+            const availableCount = allParkingSpots[zone.id].filter(s => s.status === 'vacant').length;
             zonesContainer.innerHTML += `<div class="zone-card" data-zone-id="${zone.id}" data-lat="${zone.lat}" data-lon="${zone.lon}"><div class="zone-header"><div class="zone-name">${zone.name}</div></div><div class="zone-body"><p>${zone.address}</p><div class="zone-detail"><span>Availability:</span> <span>${availableCount}/${zone.totalSpots}</span></div><button class="btn view-spots-btn" data-zone-id="${zone.id}" data-zone-name="${zone.name}"><i class="fas fa-th-large"></i> View Available Spots</button></div></div>`;
         });
     }
-    
    function renderParkingMap(zoneId) {
     parkingMapModal.innerHTML = `
         <div class="modal-content">
@@ -888,23 +877,21 @@ Contact: SmartPark Support
     });
 }
     
-    function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
-        const R = 6371; // Radius of the Earth in km
-        const toRad = (deg) => deg * (Math.PI / 180);
+   function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371e3; // metres
+    const φ1 = lat1 * Math.PI / 180;
+    const φ2 = lat2 * Math.PI / 180;
+    const Δφ = (lat2 - lat1) * Math.PI / 180;
+    const Δλ = (lon2 - lon1) * Math.PI / 180;
 
-        const dLat = toRad(lat2 - lat1);
-        const dLon = toRad(lon2 - lon1);
+    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-        const a =
-            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-            Math.sin(dLon / 2) * Math.sin(dLon / 2);
-
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-        return R * c;
-    }
-
+    const d = R * c; // in metres
+    return d / 1000; // in kilometers
+}
     function proceedToBooking(gracePeriodDurationMs) {
         parkingMapModal.classList.remove('show');
         bookingSection.classList.remove('hidden');
