@@ -1219,9 +1219,6 @@ function loadStateFromLocalStorage() {
 
         const allBookings = JSON.parse(localStorage.getItem('allSmartParkBookings')) || [];
         const customerName = sessionStorage.getItem('customerName');
-        
-        / [THE FIX] Load the user's specific bookings directly, not from the global list.
-            const customerName = sessionStorage.getItem('customerName');
             if (customerName) {
                 const userStorageKey = 'smartpark_bookings_' + customerName;
                 const savedUserBookings = localStorage.getItem(userStorageKey);
@@ -1291,5 +1288,6 @@ function loadStateFromLocalStorage() {
   </script>
 </body>
 </html> 
+
 
 
