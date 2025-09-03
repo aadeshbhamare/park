@@ -397,12 +397,12 @@ footer { background-color: var(--header-bg); padding: 2rem 1rem; border-top: 1px
     let userTokenBalance = 150;
     
     const parkingZonesData = [
-        { id: 'T1', name: "Trinity Academy of Engg", totalSpots: 70, lat: 18.455, lon: 73.935, address: "S. No. 25 & 27, A/P. Pisoli, Saswad - Bopdev - Pune Rd, next to Yewalewadi, Kondhwa, Pune, Maharashtra"},
-        { id: 'K2', name: "Kumar Pacific Mall",      totalSpots: 120, lat: 18.5015, lon: 773.8723, address: "Shankar Sheth Rd, Pune, Maharashtra" },
-        { id: 'W3', name: "Wakad Area (Phoenix)",    totalSpots: 90, lat: 18.6006, lon: 73.7566, address: "Wakad, Pimpri-Chinchwad, Maharashtra" },
-        { id: 'A4', name: "Amanora Mall",            totalSpots: 150, lat: 18.5204, lon: 73.9399, address: "Hadapsar, Pune, Maharashtra" },
-        { id: 'C5', name: "CIDCO",                   totalSpots: 80, lat: 19.8739, lon: 75.3669, address: "CIDCO, Nashik, Maharashtra" },
-        { id: 'M6', name: "Market Yard",             totalSpots: 100, lat: 18.4877, lon: 73.8684, address: "Market Yard, Pune, Maharashtra" },
+        { id: 'T1', name: "Trinity Academy of Engg", totalSpots: 70, lat: 18.420894027429124, lon:73.90485448198761, address: "S. No. 25 & 27, A/P. Pisoli, Saswad - Bopdev - Pune Rd, next to Yewalewadi, Kondhwa, Pune, Maharashtra"},
+        { id: 'K2', name: "Kumar Pacific Mall",      totalSpots: 120, lat:18.50170204318329, lon:73.87236431082498, address: "Shankar Sheth Rd, Pune, Maharashtra" },
+        { id: 'W3', name: "Wakad Area (Phoenix)",    totalSpots: 90, lat:18.600803613873484, lon:73.75666922616857, address: "Wakad, Pimpri-Chinchwad, Maharashtra" },
+        { id: 'A4', name: "Amanora Mall",            totalSpots: 150, lat:18.519055023153747,lon: 73.93348951450167,  address: "Hadapsar, Pune, Maharashtra" },
+        { id: 'C5', name: "CIDCO",                   totalSpots: 80, lat:19.068094405027946,lon: 72.99352263967481, address: "CIDCO, Nashik, Maharashtra" },
+        { id: 'M6', name: "Market Yard",             totalSpots: 100, lat:18.54327813198424,lon: 73.85185316849658,  address: "Market Yard, Pune, Maharashtra" },
         { id: 'B7', name: "Wakdewadi Bus Stand",     totalSpots: 60, lat: 18.5431, lon: 73.8518, address: "Wakdewadi, Shivajinagar, Pune" }
     ];
     
@@ -768,26 +768,24 @@ Contact: SmartPark Support
 
             checkoutModal.classList.remove('show');
         });
-    }
+    }    // --- Haversine Distance Function ---
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371e3; // metres
+    const φ1 = lat1 * Math.PI / 180;
+    const φ2 = lat2 * Math.PI / 180;
+    const Δφ = (lat2 - lat1) * Math.PI / 180;
+    const Δλ = (lon2 - lon1) * Math.PI / 180;
 
-    // --- Haversine Distance Function ---
-    function calculateDistance(lat1, lon1, lat2, lon2) {
-        const R = 6371e3; // metres
-        const φ1 = lat1 * Math.PI / 180;
-        const φ2 = lat2 * Math.PI / 180;
-        const Δφ = (lat2 - lat1) * Math.PI / 180;
-        const Δλ = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-        const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-                  Math.cos(φ1) * Math.cos(φ2) *
-                  Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const d = R * c; // in metres
+    return d / 1000; // in kilometers
+}
 
-        const d = R * c; // in metres
-        return d / 1000; // in kilometers
-    }
-
-   // --- Display Zones with Distance ---
+// --- Display Zones with Distance ---
 function displayParkingZonesWithDistances() {
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition((position) => {
@@ -822,8 +820,8 @@ function displayParkingZonesWithDistances() {
     }
 }
 
-    // Call on load
-    displayParkingZonesWithDistances();
+// Call on load
+displayParkingZonesWithDistances();
     // --- FUNCTIONS ---
     function initializeAllSpots() { parkingZonesData.forEach(zone => { allParkingSpots[zone.id] = Array.from({ length: zone.totalSpots }, (_, i) => ({ id: `${zone.id}-${String(i + 1).padStart(2, '0')}`, status: 'vacant' })); }); }
     
@@ -834,64 +832,41 @@ function displayParkingZonesWithDistances() {
             zonesContainer.innerHTML += `<div class="zone-card" data-zone-id="${zone.id}" data-lat="${zone.lat}" data-lon="${zone.lon}"><div class="zone-header"><div class="zone-name">${zone.name}</div></div><div class="zone-body"><p>${zone.address}</p><div class="zone-detail"><span>Availability:</span> <span>${availableCount}/${zone.totalSpots}</span></div><button class="btn view-spots-btn" data-zone-id="${zone.id}" data-zone-name="${zone.name}"><i class="fas fa-th-large"></i> View Available Spots</button></div></div>`;
         });
     }
-   function renderParkingMap(zoneId) {
-    parkingMapModal.innerHTML = `
-        <div class="modal-content">
-            <span class="modal-close">×</span>
-            <h2 class="card-title"><i class="fas fa-th-large"></i> Select Spots in ${parkingZonesData.find(z => z.id === zoneId).name}</h2>
-            <div id="parking-map-container"></div>
-            <div class="modal-footer">
-                <span id="selection-counter">Spots Selected: 0</span>
-                <button id="confirm-spot-selection" class="btn" disabled>Confirm</button>
-            </div>
-        </div>`;
     
-    const mapContainer = parkingMapModal.querySelector('#parking-map-container');
-    allParkingSpots[zoneId].forEach(spot => {
-        const spotDiv = document.createElement('div');
+    function renderZones() {
+        zonesContainer.innerHTML = '';
+        parkingZonesData.forEach(zone => {
+            const availableCount = allParkingSpots[zone.id].filter(s => s.status === 'vacant').length;
+            zonesContainer.innerHTML += `<div class="zone-card" data-zone-id="${zone.id}" data-lat="${zone.lat}" data-lon="${zone.lon}"><div class="zone-header"><div class="zone-name">${zone.name}</div></div><div class="zone-body"><p>${zone.address}</p><div class="zone-detail"><span>Availability:</span> <span>${availableCount}/${zone.totalSpots}</span></div><button class="btn view-spots-btn" data-zone-id="${zone.id}" data-zone-name="${zone.name}"><i class="fas fa-th-large"></i> View Available Spots</button></div></div>`;
+        });
+    }
+      function renderParkingMap(zoneId) {
+        parkingMapModal.innerHTML = `
+            <div class="modal-content">
+                <span class="modal-close">×</span>
+                <h2 class="card-title"><i class="fas fa-th-large"></i> Select Spots in ${parkingZonesData.find(z => z.id === zoneId).name}</h2>
+                <div id="parking-map-container"></div>
+                <div class="modal-footer">
+                    <span id="selection-counter">Spots Selected: 0</span>
+                    <button id="confirm-spot-selection" class="btn" disabled>Confirm</button>
+                </div>
+            </div>`;
         
-        // --- THIS IS THE NEW, SIMPLIFIED LOGIC ---
-        
-        // 1. Start with the definitive global status from the master list.
-        let spotClass = spot.status; // Can be 'vacant', 'occupied', or 'booked'
-
-        // 2. Check for a special case: Is this an active booking for the current user?
-        const isMyActiveBooking = currentUserBookings.some(booking => 
-            booking.spotId === spot.id && (booking.status === 'arrived' || booking.status === 'active')
-        );
-
-        // 3. If it is, override the class to apply the special "white border" style.
-        if (isMyActiveBooking) {
-            spotClass = 'booked-by-user';
-        }
-        // --- END OF NEW LOGIC ---
-
-        spotDiv.className = `parking-spot ${spotClass}`;
-        spotDiv.textContent = spot.id;
-
-        // Only make vacant spots clickable
-        if (spotClass === 'vacant') {
-            spotDiv.dataset.spotId = spot.id;
-        }
-        mapContainer.appendChild(spotDiv);
-    });
-}
-    
-   function calculateDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371e3; // metres
-    const φ1 = lat1 * Math.PI / 180;
-    const φ2 = lat2 * Math.PI / 180;
-    const Δφ = (lat2 - lat1) * Math.PI / 180;
-    const Δλ = (lon2 - lon1) * Math.PI / 180;
-
-    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-              Math.cos(φ1) * Math.cos(φ2) *
-              Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-    const d = R * c; // in metres
-    return d / 1000; // in kilometers
-}
+        const mapContainer = parkingMapModal.querySelector('#parking-map-container');
+        allParkingSpots[zoneId].forEach(spot => {
+            const spotDiv = document.createElement('div');
+            const userBooking = currentUserBookings.find(b => b.spotId === spot.id);
+            let currentStatus = spot.status;
+            if (userBooking) {
+                currentStatus = userBooking.status === 'active' ? 'booked-by-user' : spot.status;
+            }
+            
+            spotDiv.className = `parking-spot ${currentStatus}`;
+            spotDiv.textContent = spot.id;
+            if (currentStatus === 'vacant') spotDiv.dataset.spotId = spot.id;
+            mapContainer.appendChild(spotDiv);
+        });
+    }
     function proceedToBooking(gracePeriodDurationMs) {
         parkingMapModal.classList.remove('show');
         bookingSection.classList.remove('hidden');
@@ -982,62 +957,69 @@ function displayParkingZonesWithDistances() {
         }
     });
     
-    parkingMapModal.addEventListener('click', (e) => {
-        if (e.target.classList.contains('modal-close')) { 
-            parkingMapModal.classList.remove('show'); 
+   parkingMapModal.addEventListener('click', (e) => {
+    if (e.target.classList.contains('modal-close')) {
+        parkingMapModal.classList.remove('show');
+    }
+    const spotDiv = e.target.closest('.parking-spot.vacant, .parking-spot.selected');
+    if (spotDiv) {
+        const spotId = spotDiv.dataset.spotId;
+        const isSelected = spotsToBook.includes(spotId);
+        if (isSelected) {
+            spotsToBook = spotsToBook.filter(id => id !== spotId);
+            spotDiv.classList.remove('selected');
+        } else {
+            spotsToBook.push(spotId);
+            spotDiv.classList.add('selected');
         }
-        const spotDiv = e.target.closest('.parking-spot.vacant, .parking-spot.selected');
-        if (spotDiv) { 
-            const spotId = spotDiv.dataset.spotId; 
-            const isSelected = spotsToBook.includes(spotId); 
-            if (isSelected) { 
-                spotsToBook = spotsToBook.filter(id => id !== spotId); 
-                spotDiv.classList.remove('selected'); 
-            } else { 
-                spotsToBook.push(spotId); 
-                spotDiv.classList.add('selected'); 
-            } 
-            parkingMapModal.querySelector('#selection-counter').textContent = `Spots Selected: ${spotsToBook.length}`; 
-            parkingMapModal.querySelector('#confirm-spot-selection').disabled = spotsToBook.length === 0; 
+        parkingMapModal.querySelector('#selection-counter').textContent = `Spots Selected: ${spotsToBook.length}`;
+        parkingMapModal.querySelector('#confirm-spot-selection').disabled = spotsToBook.length === 0;
+    }
+
+    const confirmBtn = e.target.closest('#confirm-spot-selection');
+    if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Calculating...';
+
+        const zoneId = spotsToBook[0].split('-')[0];
+        const zoneData = parkingZonesData.find(z => z.id === zoneId);
+
+        if (!navigator.geolocation) {
+            alert("Geolocation is not supported. Using a default 15-minute grace period.");
+            proceedToBooking(15 * 60 * 1000);
+        } else {
+            navigator.geolocation.getCurrentPosition(
+                // Success Function
+                (position) => {
+                    const userLat = position.coords.latitude;
+                    const userLon = position.coords.longitude;
+                    
+                    // [FIX #2] Called the correct function: calculateDistance
+                    const distanceKm = calculateDistance(userLat, userLon, zoneData.lat, zoneData.lon);
+
+                    const AVERAGE_SPEED_KMPH = 25;
+                    const travelTimeMinutes = (distanceKm / AVERAGE_SPEED_KMPH) * 60;
+                    const BUFFER_MINUTES = 10;
+                    const gracePeriodMinutes = Math.ceil(travelTimeMinutes) + BUFFER_MINUTES;
+
+                    alert(`You are approx. ${distanceKm.toFixed(1)} km away.\nEstimated travel time: ${Math.ceil(travelTimeMinutes)} mins.\nYour booking will be held for ${gracePeriodMinutes} minutes.`);
+
+                    const gracePeriodDurationMs = gracePeriodMinutes * 60 * 1000;
+                    proceedToBooking(gracePeriodDurationMs);
+                },
+                // Error Function
+                () => {
+                    alert("Could not get your location. Using a default 15-minute grace period.");
+                    proceedToBooking(15 * 60 * 1000);
+                },
+                // [FIX #1] Added options object with a timeout to prevent infinite loading
+                {
+                    timeout: 10000 // If location isn't found in 10 seconds, run the error function.
+                }
+            );
         }
-        
-        const confirmBtn = e.target.closest('#confirm-spot-selection');
-        if (confirmBtn) {
-            confirmBtn.disabled = true;
-            confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Calculating...';
-
-            const zoneId = spotsToBook[0].split('-')[0];
-            const zoneData = parkingZonesData.find(z => z.id === zoneId);
-
-            if (!navigator.geolocation) {
-                alert("Geolocation is not supported. Using a default 15-minute grace period.");
-                proceedToBooking(15 * 60 * 1000);
-            } else {
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        const userLat = position.coords.latitude;
-                        const userLon = position.coords.longitude;
-                        const distanceKm = getDistanceFromLatLonInKm(userLat, userLon, zoneData.lat, zoneData.lon);
-                        
-                        const AVERAGE_SPEED_KMPH = 25;
-                        const travelTimeMinutes = (distanceKm / AVERAGE_SPEED_KMPH) * 60;
-                        const BUFFER_MINUTES = 10;
-                        const gracePeriodMinutes = Math.ceil(travelTimeMinutes) + BUFFER_MINUTES;
-
-                        alert(`You are approx. ${distanceKm.toFixed(1)} km away.\nEstimated travel time: ${Math.ceil(travelTimeMinutes)} mins.\nYour booking will be held for ${gracePeriodMinutes} minutes.`);
-                        
-                        const gracePeriodDurationMs = gracePeriodMinutes * 60 * 1000;
-                        proceedToBooking(gracePeriodDurationMs);
-                    },
-                    () => {
-                        alert("Could not get your location. Using a default 15-minute grace period.");
-                        proceedToBooking(15 * 60 * 1000);
-                    }
-                );
-            }
-        }
-    });
-
+    }
+});
     sessionPanel.addEventListener('click', (e) => {
         const endSessionBtn = e.target.closest('.end-session-btn');
         if (endSessionBtn) {
