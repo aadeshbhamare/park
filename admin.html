@@ -46,221 +46,272 @@
         .status-arrived { background: #17a2b8; }
         .status-completed { background: #6c757d; }
         .status-unknown { background: #6c757d; }
+
+        /* [FIXED] Added Responsive Header Styles for Mobile */
+        @media (max-width: 600px) {
+            .header {
+                flex-direction: column; /* Stack logo and button vertically */
+                align-items: flex-start; /* Align to the left */
+                gap: 10px; /* Add space between them */
+            }
+        }
     </style>
 </head>
 <body>
 
     <script>
-    if (sessionStorage.getItem('userRole') !== 'admin') {
-        alert("Access Denied: You must be an admin to view this page.");
-        window.location.href = 'index.html';
-    }
-</script>
-
-<header class="header">
-    <div class="logo">SmartPark Admin</div>
-    <a href="#" id="logout-btn" class="btn"><i class="fas fa-sign-out-alt"></i>Logout</a>
-</header>
-
-<div class="container">
-    <div class="live-panel-container">
-        <h2><i class="fas fa-satellite-dish"></i> Live Session Management</h2>
-        <div class="scan-section">
-          <input type="text" id="qr-scan-input" placeholder="Enter Booking ID or use camera...">
-          <button id="scan-btn" class="btn"><i class="fas fa-camera"></i> Scan</button>
-          <button id="process-arrival-btn" class="btn"><i class="fas fa-check-circle"></i> Confirm</button>
-        </div>
-        
-        <div id="qr-reader" style="width: 100%; max-width: 500px; margin: 10px auto; display: none;"></div>
-        
-        <div id="all-bookings-list">
-          <h3><i class="fas fa-list-ul"></i> Active Bookings</h3>
-          <div id="admin-bookings-container"></div>
-        </div>
-    </div>
-
-    <h1><i class="fas fa-book"></i> All Bookings History</h1>
-    <div class="controls">
-        <button id="export-btn" class="btn"><i class="fas fa-file-excel"></i>Export to Excel (CSV)</button>
-        <button id="clear-btn" class="btn"><i class="fas fa-trash-alt"></i>Clear All Data</button>
-    </div>
-    <div class="table-container">
-        <table id="bookings-table">
-            <thead>
-                <tr>
-                    <th>Status</th>
-                    <th>Booking Month</th>
-                    <th>Booking Date & Time</th>
-                    <th>Spot ID(s)</th>
-                    <th>Customer Name</th>
-                    <th>Mobile Number</th>
-                    <th>Vehicle Number</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    </div>
-</div>
-
-<script>
-    const bookingsTableBody = document.querySelector("#bookings-table tbody");
-    const exportBtn = document.getElementById('export-btn');
-    const clearBtn = document.getElementById('clear-btn');
-    const qrScanInput = document.getElementById('qr-scan-input');
-    const processArrivalBtn = document.getElementById('process-arrival-btn');
-    const adminBookingsContainer = document.getElementById('admin-bookings-container');
-    const scanBtn = document.getElementById('scan-btn');
-    const qrReaderDiv = document.getElementById('qr-reader');
-    const logoutBtn = document.getElementById('logout-btn');
-
-    function onScanSuccess(decodedText, decodedResult) {
-        qrScanInput.value = decodedText;
-        html5QrcodeScanner.clear().catch(error => console.error("Failed to clear scanner.", error));
-        qrReaderDiv.style.display = 'none';
-        processArrivalConfirmation(decodedText);
-    }
-
-    function onScanFailure(error) { /* Do nothing on failure */ }
-
-    let html5QrcodeScanner = new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: {width: 250, height: 250} }, false);
+        // Security check: Redirect if not an admin
+        if (sessionStorage.getItem('userRole') !== 'admin') {
+            alert("Access Denied: You must be an admin to view this page.");
+            window.location.href = 'index.html';
+        }
+    </script>
     
-    function processArrivalConfirmation(qrInput) {
-        try {
-            let bookingId;
-            const allBookings = JSON.parse(localStorage.getItem('allSmartParkBookings')) || [];
-            if (qrInput.startsWith('{')) {
-                bookingId = JSON.parse(qrInput).bookingId;
-            } else {
-                bookingId = qrInput;
-            }
+    <header class="header">
+        <div class="logo">SmartPark Admin</div>
+        <a href="#" id="logout-btn" class="btn"><i class="fas fa-sign-out-alt"></i>Logout</a>
+    </header>
 
-            if (!bookingId) { alert('❌ Invalid Booking ID format.'); return false; }
-
-            const bookingIndex = allBookings.findIndex(b => b.bookingId === bookingId);
+    <div class="container">
+        <div class="live-panel-container">
+            <h2><i class="fas fa-satellite-dish"></i> Live Session Management</h2>
+            <div class="scan-section">
+              <input type="text" id="qr-scan-input" placeholder="Enter Booking ID or use camera...">
+              <button id="scan-btn" class="btn"><i class="fas fa-camera"></i> Scan</button>
+              <button id="process-arrival-btn" class="btn"><i class="fas fa-check-circle"></i> Confirm</button>
+            </div>
             
-            if (bookingIndex > -1) {
-                if (allBookings[bookingIndex].status === 'arrived') {
-                    alert(`ℹ️ Arrival for booking ${bookingId} has already been confirmed.`);
+            <div id="qr-reader" style="width: 100%; max-width: 500px; margin: 10px auto; display: none;"></div>
+            
+            <div id="all-bookings-list">
+              <h3><i class="fas fa-list-ul"></i> Active Bookings</h3>
+              <div id="admin-bookings-container"></div>
+            </div>
+        </div>
+
+        <h1><i class="fas fa-book"></i> All Bookings History</h1>
+        <div class="controls">
+            <button id="export-btn" class="btn"><i class="fas fa-file-excel"></i>Export to Excel (CSV)</button>
+            <button id="clear-btn" class="btn"><i class="fas fa-trash-alt"></i>Clear All Data</button>
+        </div>
+        <div class="table-container">
+            <table id="bookings-table">
+                <thead>
+                    <tr>
+                        <th>Status</th>
+                        <th>Booking Month</th>
+                        <th>Booking Date & Time</th>
+                        <th>Spot ID(s)</th>
+                        <th>Customer Name</th>
+                        <th>Mobile Number</th>
+                        <th>Vehicle Number</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // --- DOM Element Selection ---
+        // It's best practice to define all element variables at the top.
+        const bookingsTableBody = document.querySelector("#bookings-table tbody");
+        const exportBtn = document.getElementById('export-btn');
+        const clearBtn = document.getElementById('clear-btn');
+        const qrScanInput = document.getElementById('qr-scan-input');
+        const processArrivalBtn = document.getElementById('process-arrival-btn');
+        const adminBookingsContainer = document.getElementById('admin-bookings-container');
+        const scanBtn = document.getElementById('scan-btn');
+        const qrReaderDiv = document.getElementById('qr-reader');
+        const logoutBtn = document.getElementById('logout-btn');
+
+        // --- QR Scanner Functions ---
+        function onScanSuccess(decodedText, decodedResult) {
+            qrScanInput.value = decodedText;
+            html5QrcodeScanner.clear().catch(error => console.error("Failed to clear scanner.", error));
+            qrReaderDiv.style.display = 'none';
+            processArrivalConfirmation(decodedText);
+        }
+
+        function onScanFailure(error) { /* Do nothing on failure */ }
+
+        // Initialize scanner but don't start rendering yet
+        let html5QrcodeScanner = new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: {width: 250, height: 250} }, false);
+        
+        // --- Core Logic Functions ---
+        function processArrivalConfirmation(qrInput) {
+            try {
+                let bookingId;
+                const allBookings = JSON.parse(localStorage.getItem('allSmartParkBookings')) || [];
+                
+                // Handle both raw QR data (JSON) and plain text Booking ID
+                if (qrInput.startsWith('{')) {
+                    bookingId = JSON.parse(qrInput).bookingId;
+                } else {
+                    bookingId = qrInput;
+                }
+
+                if (!bookingId) { alert('❌ Invalid Booking ID format.'); return false; }
+
+                const bookingIndex = allBookings.findIndex(b => b.bookingId === bookingId);
+                
+                if (bookingIndex > -1) {
+                    if (allBookings[bookingIndex].status === 'arrived') {
+                        alert(`ℹ️ Arrival for booking ${bookingId} has already been confirmed.`);
+                        return false;
+                    }
+                    allBookings[bookingIndex].status = 'arrived';
+                    allBookings[bookingIndex].arrivalTime = Date.now();
+                    localStorage.setItem('allSmartParkBookings', JSON.stringify(allBookings));
+                    
+                    alert(`✅ Arrival confirmed for booking ID: ${bookingId}`);
+                    // Refresh both UI sections
+                    updateAdminBookingsList();
+                    loadBookingData();
+                    return true;
+                } else {
+                    alert(`❌ Booking ID not found: ${bookingId}`);
                     return false;
                 }
-                allBookings[bookingIndex].status = 'arrived';
-                allBookings[bookingIndex].arrivalTime = Date.now();
-                localStorage.setItem('allSmartParkBookings', JSON.stringify(allBookings));
-                
-                alert(`✅ Arrival confirmed for booking ID: ${bookingId}`);
-                updateAdminBookingsList();
-                loadBookingData();
-                return true;
-            } else {
-                alert(`❌ Booking ID not found: ${bookingId}`);
+            } catch (error) {
+                console.error("Processing Error:", error);
+                alert('❌ Invalid QR code or Booking ID format.');
                 return false;
             }
-        } catch (error) {
-            console.error("Processing Error:", error);
-            alert('❌ Invalid QR code or Booking ID format.');
-            return false;
         }
-    }
-    
-    function loadBookingData() {
-        const bookings = JSON.parse(localStorage.getItem('allSmartParkBookings')) || [];
-        bookingsTableBody.innerHTML = ''; 
-        if (bookings.length === 0) {
-            bookingsTableBody.innerHTML = `<tr><td colspan="7" style="text-align:center;">No booking data found.</td></tr>`;
-            exportBtn.disabled = true;
-            clearBtn.disabled = true;
-            return;
-        }
-        exportBtn.disabled = false;
-        clearBtn.disabled = false;
-        bookings.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-        bookings.forEach(booking => {
-            const entryDate = new Date(booking.entryTime);
-            const monthName = entryDate.toLocaleString('default', { month: 'long' });
-            const status = booking.status ? booking.status.charAt(0).toUpperCase() + booking.status.slice(1) : 'Unknown';
-            const row = `<tr><td><span class="status-badge status-${booking.status || 'unknown'}">${status}</span></td><td>${monthName} ${entryDate.getFullYear()}</td><td>${entryDate.toLocaleString()}</td><td>${booking.bookedSpots || booking.spots}</td><td>${booking.fullname || booking.customerName}</td><td>${booking.mobile}</td><td>${booking.primaryVehicle}</td></tr>`;
-            bookingsTableBody.innerHTML += row;
-        });
-    }
+        
+        function loadBookingData() {
+            const bookings = JSON.parse(localStorage.getItem('allSmartParkBookings')) || [];
+            bookingsTableBody.innerHTML = ''; 
+            
+            if (bookings.length === 0) {
+                bookingsTableBody.innerHTML = `<tr><td colspan="7" style="text-align:center;">No booking data found.</td></tr>`;
+                exportBtn.disabled = true;
+                clearBtn.disabled = true;
+                return;
+            }
 
-    function updateAdminBookingsList() {
-        const allBookings = JSON.parse(localStorage.getItem('allSmartParkBookings')) || [];
-        const activeBookings = allBookings.filter(b => b.status !== 'completed');
-        if (activeBookings.length === 0) {
-            adminBookingsContainer.innerHTML = '<p style="text-align: center; color: #666;">No active bookings</p>';
-            return;
+            exportBtn.disabled = false;
+            clearBtn.disabled = false;
+            
+            // Sort by most recent first
+            bookings.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+            
+            bookings.forEach(booking => {
+                const entryDate = new Date(booking.entryTime);
+                const monthName = entryDate.toLocaleString('default', { month: 'long' });
+                const status = booking.status ? booking.status.charAt(0).toUpperCase() + booking.status.slice(1) : 'Unknown';
+                const row = `<tr>
+                    <td><span class="status-badge status-${booking.status || 'unknown'}">${status}</span></td>
+                    <td>${monthName} ${entryDate.getFullYear()}</td>
+                    <td>${entryDate.toLocaleString()}</td>
+                    <td>${booking.bookedSpots || booking.spots}</td>
+                    <td>${booking.fullname || booking.customerName}</td>
+                    <td>${booking.mobile}</td>
+                    <td>${booking.primaryVehicle}</td>
+                </tr>`;
+                bookingsTableBody.innerHTML += row;
+            });
         }
-        activeBookings.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-        adminBookingsContainer.innerHTML = activeBookings.map(booking => {
-            const statusClass = `status-${booking.status}`;
-            const statusText = booking.status.charAt(0).toUpperCase() + booking.status.slice(1);
-            return `<div class="admin-booking-item"><div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;"><strong style="font-size: 1.1rem;">${booking.bookingId}</strong><span class="status-badge ${statusClass}">${statusText}</span></div><div><strong>Customer:</strong> ${booking.customerName || booking.fullname} | <strong>Vehicle:</strong> ${booking.primaryVehicle} | <strong>Spots:</strong> ${booking.spots || booking.bookedSpots}</div><div style="font-size: 0.9rem; color: #666; margin-top: 5px;"><strong>Entry Time:</strong> ${new Date(booking.entryTime).toLocaleString()}</div></div>`;
-        }).join('');
-    }
 
-    /**
-     * ADDED: Full logic for the export function
-     */
-    function exportToCSV() {
-        const bookings = JSON.parse(localStorage.getItem('allSmartParkBookings')) || [];
-        if (bookings.length === 0) {
-            alert("No data to export.");
-            return;
+        function updateAdminBookingsList() {
+            const allBookings = JSON.parse(localStorage.getItem('allSmartParkBookings')) || [];
+            const activeBookings = allBookings.filter(b => b.status !== 'completed');
+            
+            if (activeBookings.length === 0) {
+                adminBookingsContainer.innerHTML = '<p style="text-align: center; color: #666;">No active bookings</p>';
+                return;
+            }
+
+            activeBookings.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+            adminBookingsContainer.innerHTML = activeBookings.map(booking => {
+                const statusClass = `status-${booking.status}`;
+                const statusText = booking.status.charAt(0).toUpperCase() + booking.status.slice(1);
+                return `<div class="admin-booking-item">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <strong style="font-size: 1.1rem;">${booking.bookingId}</strong>
+                        <span class="status-badge ${statusClass}">${statusText}</span>
+                    </div>
+                    <div><strong>Customer:</strong> ${booking.customerName || booking.fullname} | <strong>Vehicle:</strong> ${booking.primaryVehicle} | <strong>Spots:</strong> ${booking.spots || booking.bookedSpots}</div>
+                    <div style="font-size: 0.9rem; color: #666; margin-top: 5px;"><strong>Entry Time:</strong> ${new Date(booking.entryTime).toLocaleString()}</div>
+                </div>`;
+            }).join('');
         }
-        let csvContent = "Status,Booking Month,Booking Date & Time,Spot IDs,Customer Name,Mobile,Vehicle Number\n";
-        bookings.forEach(booking => {
-            const entryDate = new Date(booking.entryTime);
-            const month = `${entryDate.toLocaleString('default', { month: 'long' })} ${entryDate.getFullYear()}`;
-            const status = booking.status || 'Unknown';
-            const row = [`"${status}"`, `"${month}"`, `"${entryDate.toLocaleString()}"`, `"${booking.bookedSpots || booking.spots}"`, `"${booking.fullname || booking.customerName}"`, `"${booking.mobile}"`, `"${booking.primaryVehicle}"`].join(',');
-            csvContent += row + "\r\n";
-        });
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.setAttribute("download", `SmartPark_Bookings_${Date.now()}.csv`);
-        a.click();
-    }
-    
-    /**
-     * ADDED: Full logic for the clear data function
-     */
-    function clearAllData() {
-        const isConfirmed = confirm("Are you sure you want to clear ALL booking and parking spot data?\nThis action cannot be undone.");
-        if (isConfirmed) {
-            localStorage.removeItem('allSmartParkBookings');
-            localStorage.removeItem('smartpark_all_spots_status');
-            alert("All booking and parking spot data has been cleared.");
+        
+        // [FIXED] Functionality for Export button
+        function exportToCSV() {
+            const bookings = JSON.parse(localStorage.getItem('allSmartParkBookings')) || [];
+            if (bookings.length === 0) {
+                alert("No data to export.");
+                return;
+            }
+            let csvContent = "Status,Booking Month,Booking Date & Time,Spot IDs,Customer Name,Mobile,Vehicle Number\n";
+            bookings.forEach(booking => {
+                const entryDate = new Date(booking.entryTime);
+                const month = `${entryDate.toLocaleString('default', { month: 'long' })} ${entryDate.getFullYear()}`;
+                const status = (booking.status || 'Unknown').replace(/"/g, '""');
+                const spots = (booking.bookedSpots || booking.spots || '').replace(/"/g, '""');
+                const name = (booking.fullname || booking.customerName || '').replace(/"/g, '""');
+                const mobile = (booking.mobile || '').replace(/"/g, '""');
+                const vehicle = (booking.primaryVehicle || '').replace(/"/g, '""');
+                
+                const row = [`"${status}"`, `"${month}"`, `"${entryDate.toLocaleString()}"`, `"${spots}"`, `"${name}"`, `"${mobile}"`, `"${vehicle}"`].join(',');
+                csvContent += row + "\r\n";
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.style.display = 'none';
+            a.href = url;
+            a.setAttribute("download", `SmartPark_Bookings_${Date.now()}.csv`);
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        // [FIXED] Functionality for Clear Data button
+        function clearAllData() {
+            const isConfirmed = confirm("Are you sure you want to clear ALL booking and parking spot data?\nThis action cannot be undone.");
+            if (isConfirmed) {
+                localStorage.removeItem('allSmartParkBookings');
+                localStorage.removeItem('smartpark_all_spots_status');
+                alert("All booking and parking spot data has been cleared.");
+                loadBookingData();
+                updateAdminBookingsList();
+            }
+        }
+
+        // --- Event Listeners ---
+        // This runs once the entire HTML page is loaded, ensuring all buttons exist.
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initial data load
             loadBookingData();
             updateAdminBookingsList();
-        }
-    }
 
-    // --- Event Listeners ---
-    document.addEventListener('DOMContentLoaded', () => {
-        loadBookingData();
-        updateAdminBookingsList();
-
-        // MODIFIED: All event listeners are now correctly placed here
-        exportBtn.addEventListener('click', exportToCSV);
-        clearBtn.addEventListener('click', clearAllData);
-        processArrivalBtn.addEventListener('click', () => {
-            const qrInput = qrScanInput.value.trim();
-            if (!qrInput) { alert('Please enter a booking ID.'); return; }
-            if (processArrivalConfirmation(qrInput)) { qrScanInput.value = ''; }
+            // Attach all event listeners here to ensure they are set up correctly.
+            exportBtn.addEventListener('click', exportToCSV);
+            clearBtn.addEventListener('click', clearAllData);
+            
+            processArrivalBtn.addEventListener('click', () => {
+                const qrInput = qrScanInput.value.trim();
+                if (!qrInput) { alert('Please enter a booking ID.'); return; }
+                if (processArrivalConfirmation(qrInput)) { qrInput.value = ''; }
+            });
+            
+            scanBtn.addEventListener('click', () => {
+                qrReaderDiv.style.display = 'block';
+                html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+            });
+            
+            logoutBtn.addEventListener('click', (e) => {
+                e.preventDefault(); // Good practice to prevent the '#' link from being followed
+                sessionStorage.removeItem('userRole');
+                alert("You have been logged out.");
+                window.location.href = 'index.html';
+            });
         });
-        scanBtn.addEventListener('click', () => {
-            qrReaderDiv.style.display = 'block';
-            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
-        });
-        logoutBtn.addEventListener('click', e => {
-            e.preventDefault();
-            sessionStorage.removeItem('userRole');
-            alert("You have been logged out.");
-            window.location.href = 'index.html';
-        });
-    });
-</script>
+    </script>
 </body>
 </html>
