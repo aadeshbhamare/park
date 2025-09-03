@@ -435,7 +435,36 @@ footer { background-color: var(--header-bg); padding: 2rem 1rem; border-top: 1px
             status: 'booked'
         };
     }
+async function displayLatestBookingOnLoad() {
+        // Only run if the receipt section is currently hidden and there are active bookings
+        if (receiptSection.classList.contains('hidden') && currentUserBookings.length > 0) {
+            
+            // Find the most recent booking (in case of multiple)
+            const latestBooking = currentUserBookings.sort((a, b) => b.bookingConfirmationTime - a.bookingConfirmationTime)[0];
+            
+            if (latestBooking) {
+                const zoneId = latestBooking.spotId.split('-')[0];
+                const zoneData = parkingZonesData.find(z => z.id === zoneId);
 
+                // Prepare the data needed to regenerate the receipt
+                const details = {
+                    bookedSpots: currentUserBookings.map(b => b.spotId).join(', '),
+                    fullname: latestBooking.customerName,
+                    primaryVehicle: latestBooking.vehicleNo,
+                    entryTime: latestBooking.entryTime,
+                    mobile: latestBooking.mobile
+                };
+                
+                const qrData = {
+                    bookingId: latestBooking.bookingId,
+                    //... other details needed by generateArrivalQR
+                };
+                
+                // Call the existing function to rebuild and show the receipt
+                await generateEnhancedMapReceipt(details, zoneData, qrData);
+            }
+        }
+    }
     /**
      * Generates QR code for arrival confirmation
      */
@@ -1116,6 +1145,7 @@ displayParkingZonesWithDistances();
         renderZones(); 
         updateSessionPanel(); 
         tokenBalanceSpan.textContent = `${userTokenBalance} SPARK`;
+      displayLatestBookingOnLoad();
         
         document.getElementById('connectWallet').addEventListener('click', connectWallet);
         document.getElementById('disconnectWallet').addEventListener('click', disconnectWallet);
@@ -1163,7 +1193,8 @@ function saveStateToLocalStorage() {
             localStorage.setItem('smartpark_all_spots_status', JSON.stringify(allParkingSpots));
             const customerName = sessionStorage.getItem('customerName');
             if (customerName) {
-                const userStorageKey = 'smartpark_bookings_' + customerName;
+               const userStorageKey = 'smartpark_bookings_' + customerName;
+                // [THE FIX] Save the currentUserBookings array directly. This is the correct data.
                 localStorage.setItem(userStorageKey, JSON.stringify(currentUserBookings));
             }
         } catch (error) {
@@ -1189,37 +1220,22 @@ function loadStateFromLocalStorage() {
         const allBookings = JSON.parse(localStorage.getItem('allSmartParkBookings')) || [];
         const customerName = sessionStorage.getItem('customerName');
         
-        // Start with a fresh, empty list to avoid duplicates
-        currentUserBookings = []; 
-
-        if (customerName) {
-            // 1. Find all non-completed bookings for this user from the global list
-            const userGlobalBookings = allBookings.filter(booking => 
-                (booking.customerName === customerName || booking.fullname === customerName) && booking.status !== 'completed'
-            );
-
-            // 2. "Explode" these bookings back into the individual-spot format the UI needs
-            userGlobalBookings.forEach(globalBooking => {
-                const spotIds = (globalBooking.spots || globalBooking.bookedSpots || "").split(',');
-                
-                spotIds.forEach(spotId => {
-                    if (spotId) {
-                        // 3. Create a new object for EACH spot and add it to the user's personal list
-                        currentUserBookings.push({
-                            ...globalBooking, // Copy all details (bookingId, status, arrivalTime, etc.)
-                            spotId: spotId.trim(), // Add the specific `spotId` property the button needs
-                            vehicleNo: globalBooking.primaryVehicle // Standardize the vehicle number property
-                        });
-                    }
-                });
-            });
+        / [THE FIX] Load the user's specific bookings directly, not from the global list.
+            const customerName = sessionStorage.getItem('customerName');
+            if (customerName) {
+                const userStorageKey = 'smartpark_bookings_' + customerName;
+                const savedUserBookings = localStorage.getItem(userStorageKey);
+                if (savedUserBookings) {
+                    // This correctly restores the user's session with all timer info.
+                    currentUserBookings = JSON.parse(savedUserBookings);
+                }
+            }
+        } catch (error) {
+            console.error("Error loading state from localStorage. Starting fresh.", error);
+            initializeAllSpots();
+            currentUserBookings = [];
         }
-    } catch (error) {
-        console.error("Error loading state from localStorage:", error);
-        initializeAllSpots(); 
-        currentUserBookings = [];
     }
-}
     function updateWalletUI() {
         const connectBtn = document.getElementById('connectWallet');
         const disconnectBtn = document.getElementById('disconnectWallet');
@@ -1275,4 +1291,5 @@ function loadStateFromLocalStorage() {
   </script>
 </body>
 </html> 
+
 
