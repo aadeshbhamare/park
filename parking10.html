@@ -1227,27 +1227,6 @@ function loadStateFromLocalStorage() {
                     currentUserBookings = JSON.parse(savedUserBookings);
                 }
             }
-        }if (customerName) {
-            // 1. Find all non-completed bookings for this user from the global list
-            const userGlobalBookings = allBookings.filter(booking => 
-                (booking.customerName === customerName || booking.fullname === customerName) && booking.status !== 'completed'
-            );
-
-            // 2. "Explode" these bookings back into the individual-spot format the UI needs
-            userGlobalBookings.forEach(globalBooking => {
-                const spotIds = (globalBooking.spots || globalBooking.bookedSpots || "").split(',');
-                
-                spotIds.forEach(spotId => {
-                    if (spotId) {
-                        // 3. Create a new object for EACH spot and add it to the user's personal list
-                        currentUserBookings.push({
-                            ...globalBooking, // Copy all details (bookingId, status, arrivalTime, etc.)
-                            spotId: spotId.trim(), // Add the specific `spotId` property the button needs
-                            vehicleNo: globalBooking.primaryVehicle // Standardize the vehicle number property
-                        });
-                    }
-                });
-            });
         } catch (error) {
             console.error("Error loading state from localStorage. Starting fresh.", error);
             initializeAllSpots();
@@ -1309,6 +1288,7 @@ function loadStateFromLocalStorage() {
   </script>
 </body>
 </html> 
+
 
 
 
