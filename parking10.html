@@ -861,6 +861,13 @@ displayParkingZonesWithDistances();
             zonesContainer.innerHTML += `<div class="zone-card" data-zone-id="${zone.id}" data-lat="${zone.lat}" data-lon="${zone.lon}"><div class="zone-header"><div class="zone-name">${zone.name}</div></div><div class="zone-body"><p>${zone.address}</p><div class="zone-detail"><span>Availability:</span> <span>${availableCount}/${zone.totalSpots}</span></div><button class="btn view-spots-btn" data-zone-id="${zone.id}" data-zone-name="${zone.name}"><i class="fas fa-th-large"></i> View Available Spots</button></div></div>`;
         });
     }
+    function renderZones() {
+        zonesContainer.innerHTML = '';
+        parkingZonesData.forEach(zone => {
+            const availableCount = allParkingSpots[zone.id].filter(s => s.status === 'vacant').length;
+            zonesContainer.innerHTML += `<div class="zone-card" data-zone-id="${zone.id}" data-lat="${zone.lat}" data-lon="${zone.lon}"><div class="zone-header"><div class="zone-name">${zone.name}</div></div><div class="zone-body"><p>${zone.address}</p><div class="zone-detail"><span>Availability:</span> <span>${availableCount}/${zone.totalSpots}</span></div><button class="btn view-spots-btn" data-zone-id="${zone.id}" data-zone-name="${zone.name}"><i class="fas fa-th-large"></i> View Available Spots</button></div></div>`;
+        });
+    }
     
     function renderZones() {
         zonesContainer.innerHTML = '';
@@ -1289,6 +1296,7 @@ function loadStateFromLocalStorage() {
   </script>
 </body>
 </html> 
+
 
 
 
