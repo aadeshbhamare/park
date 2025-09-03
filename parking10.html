@@ -1160,7 +1160,10 @@ displayParkingZonesWithDistances();
     // --- NEW FUNCTIONS FOR SAVING AND LOADING STATE ---
     function saveStateToLocalStorage() {
         try {
+            // Save the status of every single parking spot (vacant, booked, etc.)
             localStorage.setItem('smartpark_all_spots_status', JSON.stringify(allParkingSpots));
+            
+            // Also save the current user's specific bookings list
             const customerName = sessionStorage.getItem('customerName');
             if (customerName) {
                 const userStorageKey = 'smartpark_bookings_' + customerName;
@@ -1171,55 +1174,57 @@ displayParkingZonesWithDistances();
         }
     }
 
-  // USE THIS CORRECT VERSION
-/**
- * FINAL, CORRECTED VERSION
- * This function now correctly rebuilds the user's personal booking list 
- * from the global list, converting the data structure to match what the UI expects.
- */
-function loadStateFromLocalStorage() {
-    try {
-        const savedAllSpots = localStorage.getItem('smartpark_all_spots_status');
-        if (savedAllSpots) { allParkingSpots = JSON.parse(savedAllSpots); } 
-        else { initializeAllSpots(); } 
-        
-        const savedBalance = localStorage.getItem('spark_balance');
-        if (savedBalance) { userTokenBalance = parseFloat(savedBalance); }
+    /**
+     * This function READS the saved state from the browser's storage.
+     * It is called by the main control block every time the page loads or refreshes.
+     */
+    function loadStateFromLocalStorage() {
+        try {
+            // Load the status of all parking spots from storage
+            const savedAllSpots = localStorage.getItem('smartpark_all_spots_status');
+            if (savedAllSpots) { 
+                allParkingSpots = JSON.parse(savedAllSpots); 
+            } else { 
+                initializeAllSpots(); // If no saved data, start fresh
+            } 
+            
+            // Load the user's wallet balance
+            const savedBalance = localStorage.getItem('spark_balance');
+            if (savedBalance) { userTokenBalance = parseFloat(savedBalance); }
 
-        const allBookings = JSON.parse(localStorage.getItem('allSmartParkBookings')) || [];
-        const customerName = sessionStorage.getItem('customerName');
-        
-        // Start with a fresh, empty list to avoid duplicates
-        currentUserBookings = []; 
+            // Load the GLOBAL list of all bookings ever made
+            const allBookings = JSON.parse(localStorage.getItem('allSmartParkBookings')) || [];
+            const customerName = sessionStorage.getItem('customerName');
+            
+            currentUserBookings = []; // Always start with an empty list for this session
 
-        if (customerName) {
-            // 1. Find all non-completed bookings for this user from the global list
-            const userGlobalBookings = allBookings.filter(booking => 
-                (booking.customerName === customerName || booking.fullname === customerName) && booking.status !== 'completed'
-            );
+            if (customerName) {
+                // Find all bookings in the global list that belong to this user and are not yet completed
+                const userGlobalBookings = allBookings.filter(booking => 
+                    (booking.customerName === customerName || booking.fullname === customername) && booking.status !== 'completed'
+                );
 
-            // 2. "Explode" these bookings back into the individual-spot format the UI needs
-            userGlobalBookings.forEach(globalBooking => {
-                const spotIds = (globalBooking.spots || globalBooking.bookedSpots || "").split(',');
-                
-                spotIds.forEach(spotId => {
-                    if (spotId) {
-                        // 3. Create a new object for EACH spot and add it to the user's personal list
-                        currentUserBookings.push({
-                            ...globalBooking, // Copy all details (bookingId, status, arrivalTime, etc.)
-                            spotId: spotId.trim(), // Add the specific `spotId` property the button needs
-                            vehicleNo: globalBooking.primaryVehicle // Standardize the vehicle number property
-                        });
-                    }
+                // Rebuild the "Active Sessions" list from this filtered data
+                userGlobalBookings.forEach(globalBooking => {
+                    const spotIds = (globalBooking.spots || globalBooking.bookedSpots || "").split(',');
+                    spotIds.forEach(spotId => {
+                        if (spotId) {
+                            currentUserBookings.push({
+                                ...globalBooking,
+                                spotId: spotId.trim(),
+                                vehicleNo: globalBooking.primaryVehicle
+                            });
+                        }
+                    });
                 });
-            });
+            }
+        } catch (error) {
+            console.error("Error loading state from localStorage:", error);
+            // If anything goes wrong, reset to a safe default state
+            initializeAllSpots(); 
+            currentUserBookings = [];
         }
-    } catch (error) {
-        console.error("Error loading state from localStorage:", error);
-        initializeAllSpots(); 
-        currentUserBookings = [];
     }
-}
     
     function updateWalletUI() {
         const connectBtn = document.getElementById('connectWallet');
@@ -1276,3 +1281,4 @@ function loadStateFromLocalStorage() {
   </script>
 </body>
 </html> 
+
