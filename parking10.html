@@ -1286,24 +1286,10 @@ function loadStateFromLocalStorage() {
         alert('Wallet has been disconnected.');
         updateWalletUI(); 
     }
-       // --- [THE FIX] This listener updates the UI in real-time when another tab changes the data ---
-    window.addEventListener('storage', (event) => {
-        // We check if the key that changed is the one we care about.
-        // 'allSmartParkBookings' is the key the admin panel modifies.
-        if (event.key === 'allSmartParkBookings') {
-            
-            console.log('Storage changed by another tab. Reloading session data...');
-            
-            // 1. Reload the state from the now-updated localStorage.
-            loadStateFromLocalStorage();
-            
-            // 2. Re-render the session panel to show the changes (e.g., the "Exit & Pay" button).
-            updateSessionPanel();
-        }
-    });
   </script>
 </body>
 </html> 
+
 
 
 
