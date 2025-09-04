@@ -1215,6 +1215,8 @@ function saveStateToLocalStorage() {
  * This function now correctly rebuilds the user's personal booking list 
  * from the global list, converting the data structure to match what the UI expects.
  */
+// --- REPLACE your old loadStateFromLocalStorage function with this one ---
+
 function loadStateFromLocalStorage() {
     try {
         const savedAllSpots = localStorage.getItem('smartpark_all_spots_status');
@@ -1224,23 +1226,48 @@ function loadStateFromLocalStorage() {
         const savedBalance = localStorage.getItem('spark_balance');
         if (savedBalance) { userTokenBalance = parseFloat(savedBalance); }
 
+        // [THE FIX] This is where the synchronization happens.
+        
+        // 1. Load the master list that the admin updates.
         const allBookings = JSON.parse(localStorage.getItem('allSmartParkBookings')) || [];
         const customerName = sessionStorage.getItem('customerName');
-            if (customerName) {
-                const userStorageKey = 'smartpark_bookings_' + customerName;
-                const savedUserBookings = localStorage.getItem(userStorageKey);
-                if (savedUserBookings) {
-                    // This correctly restores the user's session with all timer info.
-                    currentUserBookings = JSON.parse(savedUserBookings);
-                }
+            
+        if (customerName) {
+            const userStorageKey = 'smartpark_bookings_' + customerName;
+            const savedUserBookings = localStorage.getItem(userStorageKey);
+            
+            if (savedUserBookings) {
+                currentUserBookings = JSON.parse(savedUserBookings);
+
+                // 2. Loop through each of the user's current bookings.
+                currentUserBookings.forEach(userBooking => {
+                    // 3. Find the matching booking in the master list using the unique bookingId.
+                    const masterBooking = allBookings.find(b => b.bookingId === userBooking.bookingId);
+
+                    // 4. If the master booking's status is different (e.g., it's now 'arrived'),
+                    //    update the user's local booking to match it.
+                    if (masterBooking && masterBooking.status !== userBooking.status) {
+                        console.log(`Syncing status for ${userBooking.bookingId}: from '${userBooking.status}' to '${masterBooking.status}'`);
+                        userBooking.status = masterBooking.status; // Update status
+                        
+                        // Also copy the arrival time set by the admin
+                        if (masterBooking.status === 'arrived' && masterBooking.arrivalTime) {
+                            userBooking.arrivalTime = masterBooking.arrivalTime;
+                        }
+                    }
+                });
+
+                // 5. Save the now-synced list back to the user's storage.
+                // This ensures the UI will be correct.
+                saveStateToLocalStorage();
             }
-        } catch (error) {
-            console.error("Error loading state from localStorage. Starting fresh.", error);
-            initializeAllSpots();
-            currentUserBookings = [];
         }
+    } catch (error) {
+        console.error("Error loading state from localStorage. Starting fresh.", error);
+        initializeAllSpots();
+        currentUserBookings = [];
     }
-     
+}
     function updateWalletUI() {
         const connectBtn = document.getElementById('connectWallet');
         const disconnectBtn = document.getElementById('disconnectWallet');
@@ -1296,6 +1323,7 @@ function loadStateFromLocalStorage() {
   </script>
 </body>
 </html> 
+
 
 
 
