@@ -151,7 +151,7 @@
                 if (!bookingId) { alert('❌ Invalid Booking ID format.'); return false; }
                 const bookingIndex = allBookings.findIndex(b => b.bookingId === bookingId);
                 if (bookingIndex > -1) {
-                    if (allBookings[bookingIndex].status === 'arrived') {
+                    if (allBookings[bookingIndex].status ==='arrived') {
                         alert(`ℹ️ Arrival for booking ${bookingId} has already been confirmed.`);
                         return false;
                     }
@@ -273,5 +273,6 @@
     </script>
 </body>
 </html>
+
 
 
